@@ -39,6 +39,10 @@ jobs:
         run: npm install
       - name: Build
         run: npm run build
+      - name: Generate Build Info
+        run: |
+          sudo apt-get install jq
+          echo "{ \"build_date\": \"$(date)\", \"commit_sha\": \"$GITHUB_SHA\" }" | jq . > public/build-info.json
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
