@@ -2,6 +2,9 @@
     <v-container class="h-100 d-flex align-center flex-column" fluid>
         <v-btn variant="text" @click="dialog = true" class="text-body-2" prepend-icon="add">add a new search</v-btn>
         <v-sheet width="100%" v-for="(search, searchIndex) of store.clSearches">
+            <audio :id="`sound-${search.url}`">
+                <source v-if="sounds[search.url]" :src="sounds[search.url]" type="audio/mpeg">
+            </audio>
             <v-row class="d-flex align-center">
                 <v-col :cols="3" class="d-flex">
                     <div class="text-caption text-no-wrap text-truncate" style="cursor: pointer" v-if="!editing[search.url]" @click="editing[search.url] = true">{{ search.name }}</div>
@@ -17,7 +20,8 @@
             <v-slide-group v-model="slidegroups[search.url]" class="pa-4" selected-class="bg-success" :class="hovering[search.url] ? '' : 'hide-arrows'" @mouseenter="hovering[search.url] = true" @mouseleave="hovering[search.url] = false">
                 <v-slide-group-item v-for="(listing, index) of mostRecent(search.url)" :key="listing.pid" v-slot="{ isSelected, toggle, selectedClass }">
                     <div class="d-flex flex-column mx-1" style="width: 250px">
-                        <v-card :color="listing.imageUrls?.length ? 'yellow-lighten-1' : 'grey-lighten-3'" rounded="xl" :class="listing.time > Math.floor((Date.now() - (60000 * 5)) / 1000) ? 'pt-2' : ''">
+                        <v-icon class="new-icon" icon="newspaper" v-if="listing.time > Math.floor((Date.now() - (60000 * 10)) / 1000)" color="yellow" />
+                        <v-card :color="listing.imageUrls?.length ? 'yellow-lighten-1' : 'grey-lighten-3'" rounded="xl">
                             <v-carousel transition="fade" height="250" hide-delimiter-background :show-arrows="false">
                                 <span style="position: absolute; z-index: 1" class="text-caption ml-4">{{ listing.pid }}</span>
                                 <v-carousel-item v-if="listing.imageUrls?.length" v-for="imageUrl of listing.imageUrls" :key="imageUrl">
@@ -50,6 +54,13 @@
     </v-container>
 </template>
 <style scoped>
+.new-icon {
+    position: absolute;
+    z-index: 1;
+    top: 36px;
+    left: 36px;
+}
+
 :deep() .hide-arrows .v-slide-group__prev,
 :deep() .hide-arrows .v-slide-group__next {
     display: none;
@@ -71,10 +82,13 @@ const rules = {
         v => v && /https:\/\/.*\.craigslist\.org\/search\/.+/.test(v) || `url is not valid or not supported`
     ]
 }
+const isMounted = ref(false)
+const audioDebounce = ref()
 const interval = ref()
 const checked = ref({})
 const hovering = ref({})
 const editing = ref({})
+const sounds = ref({})
 const newName = ref()
 const newSearchName = ref()
 const newUrl = ref()
@@ -179,9 +193,17 @@ function parse(result) {
         listings: {}
     }
     data.value[url].checked = Date.now()
+    sounds.value[url] = '/323208_4347097-lq.mp3'
     $searchResults.each((index, element) => {
         const pid = $(element).attr('data-pid')
         if (!data.value[url].listings[pid]) {
+            if (isMounted.value) {
+                if (audioDebounce.value) clearTimeout(audioDebounce.value)
+                audioDebounce.value = setTimeout(() => {
+                    document.getElementById(`sound-${url}`).play()
+                    audioDebounce.value = undefined
+                }, 3000)
+            }
             data.value[url].listings[pid] = {
                 pid,
                 imageUrls: []
@@ -216,7 +238,7 @@ onMounted(() => {
             parse(result)
         })
     })
-
+    setTimeout(() => isMounted.value = true, 11000)
 })
 onBeforeUnmount(() => clearInterval(interval.value))
 </script>
