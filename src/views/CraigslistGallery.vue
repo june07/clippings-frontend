@@ -240,7 +240,6 @@ function linkedDeviceHandler() {
 function newSearchHandler() {
     store.clSearches.push({ name: newName.value || new Date().toLocaleString(), url: newUrl.value, uuid: uuidv5(newUrl.value, uuidv5.URL) })
     sio.emit('get', newUrl.value, (result) => {
-        if (!result) return
         parse(result)
     })
     dialogs.value.add = false
@@ -301,6 +300,7 @@ function mostRecent(uuid) {
     return mostRecent
 }
 function parse(result) {
+    if (!result) return
     const { url, html } = result
     const uuid = uuidv5(url, uuidv5.URL)
     hovering.value[uuid] = false
@@ -375,7 +375,6 @@ onMounted(() => {
     if (!store.isLinkedDevice) {
         store.clSearches.forEach(search => {
             sio.emit('get', search.url, (result) => {
-                if (!result) return
                 parse(result)
             })
         })
