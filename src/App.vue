@@ -4,13 +4,13 @@
             <craigslist-gallery />
         </v-main>
 
-        <v-snackbar color="primary" text :timeout="-1" v-model="notice" style="opacity: 0.9" @click="notice = !notice">
+        <v-snackbar text :timeout="-1" v-model="notice" style="opacity: 0.9" @click="notice = !notice">
             <v-row>
                 <v-col cols="1" class="d-flex align-center justify-center">
                     <span class="material-icons-outlined">info</span>
                 </v-col>
                 <v-col cols="10" class="d-flex align-center justify-center">
-                    <span @click="$router.go()" class="font-weight-light" v-bind:class="xsOnly ? 'caption' : ''" style="cursor: pointer">App update available.</span>
+                    <span @click="location.reload()" class="font-weight-light" v-bind:class="xsOnly ? 'caption' : ''" style="cursor: pointer">App update available.</span>
                 </v-col>
                 <v-col cols="1" class="d-flex align-center justify-center">
                     <v-btn variant="plain" :size="xsOnly ? 'x-small' : ''" @click="clickHandler"> x </v-btn>
