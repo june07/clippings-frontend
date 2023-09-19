@@ -1,6 +1,6 @@
 <template>
     <v-container class="h-100 d-flex align-center flex-column" fluid>
-        <div class="d-flex align-center">
+        <div class="d-flex align-center justify-center" :class="smAndDown ? 'flex-column' : ''">
             <div v-if="textToSpeechConfigured" class="d-flex align-center">
                 <audio controls autoplay id="sound">
                     <source v-if="soundToPlay" :src="soundToPlay" type="audio/mpeg">
@@ -9,8 +9,8 @@
             </div>
             <v-btn v-else @click="dialogs.tts = true" rounded>setup text to speech</v-btn>
             <v-btn variant="text" @click="dialogs.add = true" class="text-body-2" prepend-icon="add" v-if="!store.isLinkedDevice">add a new search</v-btn>
-            <v-btn variant="text" @click="linkDeviceHandler" class="text-body-2" prepend-icon="sync" v-if="!store.isLinkedDevice">link device</v-btn>
-            <v-chip v-else class="ml-4">linked to {{ store.linkCode }}</v-chip>
+            <v-btn variant="text" @click="linkDeviceHandler" class="text-body-2" prepend-icon="sync" v-if="!store.isLinkedDevice && !smAndDown">link device</v-btn>
+            <v-chip v-else class="ml-4" :class="smAndDown ? 'mt-2' : ''">linked to {{ store.linkCode }}</v-chip>
         </div>
         <v-sheet width="100%" v-for="(search, searchIndex) of store.clSearches">
             <audio :id="`sound-${search.uuid}`">
@@ -21,13 +21,16 @@
                     <div class="text-no-wrap text-truncate" style="cursor: pointer" v-if="!editing[search.uuid]" @click="editing[search.uuid] = true">{{ search.name }}</div>
                     <v-text-field variant="outlined" density="compact" hide-details v-model="newSearchName" v-else @change="setSearchNameModel(search.uuid)" placeholder="Search Name" @mouseleave="editing[search.uuid] = false" />
                     <a :href="search.url" target="_blank" rel="noopener" class="ml-2">craigslist</a>
-                    <div v-if="data[search.uuid]?.checked" class="ml-8">last checked {{ checked[search.uuid] }} ago</div>
+                    <div v-if="data[search.uuid]?.checked && !smAndDown" class="ml-8">last checked {{ checked[search.uuid] }} ago</div>
+                    <div v-else class="ml-4">{{ checked[search.uuid] }}</div>
                     <v-spacer />
                 </v-col>
                 <v-spacer />
                 <v-btn v-if="searchIndex !== 0" variant="text" class="text-body-2" icon="arrow_upward" @click="sort('up', search.uuid)" />
                 <v-btn v-if="searchIndex !== store.clSearches.length - 1" variant="text" class="text-body-2" icon="arrow_downward" @click="sort('down', search.uuid)" />
-                <v-btn variant="text" class="text-body-2" prepend-icon="delete" @click="deleteHandler(search.uuid)">delete <span class="ml-2 font-italic font-weight-medium">{{ search.name }}</span></v-btn>
+                <v-btn variant="text" class="text-body-2" prepend-icon="delete" @click="deleteHandler(search.uuid)">
+                    <span v-if="!smAndDown">delete <span class="ml-2 font-italic font-weight-medium">{{ search.name }}</span></span>
+                </v-btn>
             </v-row>
             <v-slide-group class="pa-4" selected-class="bg-success" show-arrows="always" :class="hovering[search.uuid] ? '' : 'hide-arrows'" @mouseenter="hovering[search.uuid] = true" @mouseleave="hovering[search.uuid] = false">
                 <v-slide-group-item v-for="(listing, index) of mostRecent(search.uuid)" :key="listing.pid" v-slot="{ isSelected, toggle, selectedClass }">
@@ -167,7 +170,7 @@ const dialogs = ref({
     tts: false
 })
 const store = useAppStore()
-const maxListingsPerSearch = smAndDown ? 7 : 21
+const maxListingsPerSearch = smAndDown.value ? 7 : 21
 const data = ref({})
 const ttsPidMap = ref({})
 const sio = io(VITE_API_SERVER + '/cl', {
