@@ -10,7 +10,7 @@
                     <span class="material-icons-outlined">info</span>
                 </v-col>
                 <v-col cols="10" class="d-flex align-center justify-center">
-                    <span @click="window.location.reload()" class="font-weight-light" v-bind:class="xsOnly ? 'caption' : ''" style="cursor: pointer">App update available.</span>
+                    <span @click="reload" class="font-weight-light" v-bind:class="xsOnly ? 'caption' : ''" style="cursor: pointer">App update available.</span>
                 </v-col>
                 <v-col cols="1" class="d-flex align-center justify-center">
                     <v-btn variant="plain" :size="xsOnly ? 'x-small' : ''" @click="clickHandler"> x </v-btn>
@@ -51,6 +51,9 @@ const checkVersion = async () => {
     } else {
         lastBuild.value = buildInfo.value
     }
+}
+function reload() {
+    location.reload()
 }
 function themeHandler() {
     store.theme = store.theme === "light" ? "dark" : "light"
