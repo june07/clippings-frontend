@@ -163,6 +163,7 @@ const dialogs = ref({
     linked: false,
     tts: false
 })
+const lastTTSSearch = ref()
 const store = useAppStore()
 const unplayedInQueue = computed(() => {
     return store.audioQueue && Object.values(store.audioQueue).length ? Object.values(store.audioQueue).find(q => !q.played) : false
@@ -306,7 +307,12 @@ function mostRecent(uuid) {
             if (!store.isLinkedDevice && !store.audioQueue[pid]) {
                 store.audioQueue[pid] = { pid, href, title, createdAt: Date.now() }
                 console.log(pid, title)
-                textToSpeech(pid, `${MODE === 'production' ? 'next' : 'development'}... ${title}`)
+                let ttsString = `${MODE === 'production' ? 'next' : 'development'}... ${title}`
+                if (lastTTSSearch.value !== uuid) {
+                    lastTTSSearch.value = uuid
+                    ttsString = `search name: ${(store.clSearches.find(search => search.uuid === uuid)).name}, ${ttsString}`
+                }
+                textToSpeech(pid, ttsString)
             }
         })
     }
