@@ -2,7 +2,7 @@
     <v-container class="h-100 d-flex align-center flex-column" fluid>
         <div class="d-flex align-center justify-center" :class="smAndDown ? 'flex-column' : ''">
             <div class="d-flex align-center">
-                <v-btn v-if="Object.keys(store.audioQueue).length" variant="text" @click="playQueue" class="mr-4" rounded>play queue</v-btn>
+                <v-btn v-if="unplayedInQueue" variant="text" @click="playQueue" class="mr-4" rounded>play queue</v-btn>
                 <audio controls autoplay id="sound">
                     <source v-if="soundToPlay" :src="soundToPlay" type="audio/mpeg">
                 </audio>
@@ -137,6 +137,7 @@ import draggable from 'vuedraggable'
 import { watch } from 'vue'
 import { v5 as uuidv5 } from 'uuid'
 
+const { MODE } = import.meta.env
 const { smAndDown } = useDisplay()
 const rules = {
     url: [
@@ -163,6 +164,9 @@ const dialogs = ref({
     tts: false
 })
 const store = useAppStore()
+const unplayedInQueue = computed(() => {
+    return store.audioQueue && Object.values(store.audioQueue).length ? Object.values(store.audioQueue).find(q => !q.played) : false
+})
 const maxListingsPerSearch = smAndDown.value ? 7 : 21
 const data = ref({})
 const sio = io(VITE_API_SERVER + '/cl', {
@@ -302,7 +306,7 @@ function mostRecent(uuid) {
             if (!store.isLinkedDevice && !store.audioQueue[pid]) {
                 store.audioQueue[pid] = { pid, href, title, createdAt: Date.now() }
                 console.log(pid, title)
-                textToSpeech(pid, `next listing... ${title}`)
+                textToSpeech(pid, `${MODE === 'production' ? 'next' : 'development'}... ${title}`)
             }
         })
     }
