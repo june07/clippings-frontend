@@ -301,7 +301,7 @@ function mostRecent(uuid) {
             // queue 
             if (!store.isLinkedDevice && !store.audioQueue[pid]?.played) {
                 store.audioQueue[pid] = { pid, href, title, createdAt: Date.now() }
-                textToSpeech(pid, title)
+                textToSpeech(pid, `next listing... ${title}`)
             }
         })
     }
