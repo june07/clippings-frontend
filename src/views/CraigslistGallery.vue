@@ -301,6 +301,7 @@ function mostRecent(uuid) {
             // queue 
             if (!store.isLinkedDevice && !store.audioQueue[pid]?.played) {
                 store.audioQueue[pid] = { pid, href, title, createdAt: Date.now() }
+                console.log(pid, title)
                 textToSpeech(pid, `next listing... ${title}`)
             }
         })
@@ -416,83 +417,76 @@ function textToSpeechSystem(pid, text) {
 }
 function textToSpeechElevenLabs(pid, text, retry = 0) {
     if (store.audioQueue[pid].base64) return
-    try {
-        const ws = new WebSocket(`wss://api.elevenlabs.io/v1/text-to-speech/${store.elevenlabs.voiceId}/stream-input?model_id=${store.elevenlabs.voiceModel}`)
-        const audioChunks = []
+    const ws = new WebSocket(`wss://api.elevenlabs.io/v1/text-to-speech/${store.elevenlabs.voiceId}/stream-input?model_id=${store.elevenlabs.voiceModel}`)
+    const audioChunks = []
 
-        ws.onopen = function (event) {
-            const bosMessage = {
-                text: ' ',
-                'xi_api_key': store.elevenlabs.XI_API_KEY
-            }
-            ws.send(JSON.stringify(bosMessage))
-
-            ws.send(JSON.stringify({
-                text: `${text} `,
-                try_trigger_generation: true
-            }))
-
-            ws.send(JSON.stringify({
-                "text": ''
-            }))
+    ws.onopen = function (event) {
+        const bosMessage = {
+            text: ' ',
+            'xi_api_key': store.elevenlabs.XI_API_KEY
         }
-        ws.onerror = function (error) {
-            console.error(`WebSocket Error: ${error}`)
+        ws.send(JSON.stringify(bosMessage))
+
+        ws.send(JSON.stringify({
+            text: `${text} `,
+            try_trigger_generation: true
+        }))
+
+        ws.send(JSON.stringify({
+            "text": ''
+        }))
+    }
+    ws.onerror = function (error) {
+        console.error(`WebSocket Error: ${error}`)
+    }
+    ws.onmessage = function (event) {
+        const response = JSON.parse(event.data)
+
+        // console.log("Server response:", response)
+
+        if (!response.audio) {
+            console.log("No audio data in the response")
         }
-        ws.onmessage = function (event) {
-            const response = JSON.parse(event.data)
 
-            // console.log("Server response:", response)
+        if (response.isFinal) {
+            if (store.audioQueue[pid]) {
+                const blob = new Blob(audioChunks, { type: 'audio/mpeg' })
+                toBase64(blob, base64Encoded => {
+                    store.audioQueue[pid] = {
+                        ...store.audioQueue[pid],
+                        base64: base64Encoded
+                    }
+                })
 
-            if (!response.audio) {
-                console.log("No audio data in the response")
-            }
-
-            if (response.isFinal) {
-                if (store.audioQueue[pid]) {
-                    const blob = new Blob(audioChunks, { type: 'audio/mpeg' })
-                    toBase64(blob, base64Encoded => {
-                        store.audioQueue[pid] = {
-                            ...store.audioQueue[pid],
-                            base64: base64Encoded
-                        }
-                    })
-
-                }
-            }
-
-            if (response.audio) {
-                const audioBlob = new Blob(
-                    [
-                        new Uint8Array(
-                            atob(response.audio)
-                                .split("")
-                                .map((char) => char.charCodeAt(0))
-                        ),
-                    ],
-                    { type: "audio/mpeg" }
-                )
-                audioChunks.push(audioBlob)
             }
         }
-        ws.onclose = function (event) {
-            if (event.wasClean) {
-                if (/max/i.test(event.reason) && retry < 3) {
-                    retry += 1
-                    setTimeout(() => textToSpeechElevenLabs(pid, text, retry), Math.random() * (30000 - 50000) + 50000)
-                } else if (/quota/i.test(event.reason)) {
-                    textToSpeechSystem(pid, text)
-                } else {
-                    console.info(`Connection closed cleanly, code=${event.code}, reason=${event.reason}`)
-                }
+
+        if (response.audio) {
+            const audioBlob = new Blob(
+                [
+                    new Uint8Array(
+                        atob(response.audio)
+                            .split("")
+                            .map((char) => char.charCodeAt(0))
+                    ),
+                ],
+                { type: "audio/mpeg" }
+            )
+            audioChunks.push(audioBlob)
+        }
+    }
+    ws.onclose = function (event) {
+        if (event.wasClean) {
+            if (/max/i.test(event.reason) && retry < 3) {
+                retry += 1
+                setTimeout(() => textToSpeechElevenLabs(pid, text, retry), Math.random() * (30000 - 50000) + 50000)
+            } else if (/quota/i.test(event.reason)) {
+                textToSpeechSystem(pid, text)
             } else {
-                console.warn('Connection died')
+                console.info(`Connection closed cleanly, code=${event.code}, reason=${event.reason}`)
             }
-        }
-    } catch (error) {
-        if (retry < 3) {
-            retry += 1
-            setTimeout(() => textToSpeechElevenLabs(pid, text, retry), Math.random() * (30000 - 50000) + 50000)
+        } else {
+            console.warn('Connection died')
         }
     }
 }
