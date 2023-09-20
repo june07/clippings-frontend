@@ -1,17 +1,16 @@
 <template>
     <v-container class="h-100 d-flex align-center flex-column" fluid>
         <div class="d-flex align-center justify-center" :class="smAndDown ? 'flex-column' : ''">
-            <div v-if="textToSpeechConfigured" class="d-flex align-center">
+            <div class="d-flex align-center">
                 <v-btn v-if="Object.keys(store.audioQueue).length" variant="text" @click="playQueue" class="mr-4" rounded>play queue</v-btn>
                 <audio controls autoplay id="sound">
                     <source v-if="soundToPlay" :src="soundToPlay" type="audio/mpeg">
                 </audio>
                 <v-btn @click="dialogs.tts = true" variant="text" icon="settings"></v-btn>
             </div>
-            <v-btn v-else @click="dialogs.tts = true" rounded>setup text to speech</v-btn>
             <v-btn variant="text" @click="dialogs.add = true" class="text-body-2" prepend-icon="add" v-if="!store.isLinkedDevice">add a new search</v-btn>
             <v-btn variant="text" rounded @click="linkDeviceHandler" class="text-body-2" prepend-icon="link" v-if="!store.isLinkedDevice && !smAndDown">link device</v-btn>
-            <v-chip v-else class="mx-4" :class="smAndDown ? 'mt-2' : ''">linked to {{ store.linkCode }}</v-chip>
+            <v-chip v-else-if="store.linkCode" class="mx-4" :class="smAndDown ? 'mt-2' : ''">linked to {{ store.linkCode }}</v-chip>
             <v-btn variant="text" rounded @click="unlinkDeviceHandler" class="text-body-2" prepend-icon="link_off" v-if="store.isLinkedDevice && !smAndDown">unlink device</v-btn>
         </div>
         <v-sheet width="100%" v-for="(search, searchIndex) of store.clSearches">
@@ -146,7 +145,6 @@ const rules = {
     ]
 }
 const { VITE_API_SERVER } = import.meta.env
-const textToSpeechConfigured = computed(() => store.elevenlabs.XI_API_KEY && store.elevenlabs.voiceId && store.elevenlabs.voiceModel)
 const linkSetup = ref(false)
 const soundToPlay = ref()
 const debounce = ref()
