@@ -1,12 +1,19 @@
 <template>
     <v-container class="h-100 d-flex align-center flex-column" fluid>
         <div class="d-flex align-center justify-center" :class="smAndDown ? 'flex-column' : ''">
-            <div class="d-flex align-center">
-                <v-btn v-if="unplayedInQueue" variant="text" @click="playQueue" class="mr-4" rounded>play queue</v-btn>
+            <div class="d-flex align-center" v-if="!unplayedInQueue">
                 <audio controls autoplay id="sound">
                     <source v-if="soundToPlay" :src="soundToPlay" type="audio/mpeg">
                 </audio>
                 <v-btn @click="dialogs.tts = true" variant="text" icon="settings"></v-btn>
+            </div>
+            <div class="d-flex" :class="smAndDown ? 'mt-2 align-self-start' : ''">
+                <v-btn variant="text" @click="playQueue" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="smAndDown ? undefined : 'video_library'" :icon="smAndDown ? 'video_library' : undefined">
+                    <template v-slot:default v-if="!smAndDown">play queue</template>
+                </v-btn>
+                <v-btn variant="text" @click="audioButtonHandler" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="!smAndDown && audioEnabled ? 'volume_up' : 'volume_off'" :icon="smAndDown ? audioEnabled ? 'volume_up' : 'volume_off' : undefined">
+                    <template v-slot:default v-if="!smAndDown">{{ audioEnabled ? 'disable' : 'enable' }} audio</template>
+                </v-btn>
             </div>
             <v-btn variant="text" @click="dialogs.add = true" class="text-body-2" prepend-icon="add" v-if="!store.isLinkedDevice">add a new search</v-btn>
             <v-btn variant="text" rounded @click="linkDeviceHandler" class="text-body-2" prepend-icon="link" v-if="!store.isLinkedDevice && !smAndDown">link device</v-btn>
@@ -31,7 +38,7 @@
                 </v-btn>
             </v-row>
             <v-slide-group class="pa-4" selected-class="bg-success" show-arrows="always" :class="hovering[search.uuid] ? '' : 'hide-arrows'" @mouseenter="hovering[search.uuid] = true" @mouseleave="hovering[search.uuid] = false">
-                <v-slide-group-item v-for="(listing, index) of mostRecent(search.uuid)" :key="listing.pid" v-slot="{ isSelected, toggle, selectedClass }">
+                <v-slide-group-item v-for="(listing, index) of mostRecent(search.uuid)" :key="`${listing.pid} ${search.uuid}`" v-slot="{ isSelected, toggle, selectedClass }">
                     <div class="d-flex flex-column mx-1" :style="smAndDown ? 'width: 100px' : 'width: 250px'">
                         <v-icon class="new-icon" icon="newspaper" v-if="listing.time > Math.floor((Date.now() - (60000 * 10)) / 1000)" color="yellow" />
                         <v-card :color="listing.imageUrls?.length ? 'yellow-lighten-1' : 'grey-lighten-3'" rounded="xl">
@@ -102,7 +109,7 @@
                 <v-card-text>
                     <v-text-field density="compact" variant="solo" rounded="lg" v-model="store.elevenlabs.XI_API_KEY" persistent-hint hint="Elevenlabs API Key" type="password" />
                     <v-text-field density="compact" variant="solo" rounded="lg" v-model="store.elevenlabs.voiceModel" persistent-hint hint="Elevenlabs voiceModel" />
-                    <v-text-field density="compact" variant="solo" rounded="lg" v-model="store.elevenlabs.voiceId" persistent-hint hint="urElevenlabsl voiceId" />
+                    <v-text-field density="compact" variant="solo" rounded="lg" v-model="store.elevenlabs.voiceId" persistent-hint hint="Elevenlabsl voiceId" />
                 </v-card-text>
                 <v-card-actions class="justify-center">
                     <v-btn prepend-icon="save" variant="tonal" @click="dialogs.tts = false">save</v-btn>
@@ -147,6 +154,7 @@ const rules = {
 }
 const { VITE_API_SERVER } = import.meta.env
 const linkSetup = ref(false)
+const audioEnabled = ref(true)
 const soundToPlay = ref()
 const debounce = ref()
 const isMounted = ref(false)
@@ -252,6 +260,12 @@ function deleteHandler(uuid) {
     if (index !== -1) {
         store.clSearches.splice(index, 1)
         sio.emit('delete', uuid)
+    }
+}
+function audioButtonHandler() {
+    audioEnabled.value = !audioEnabled.value
+    if (!audioEnabled.value) {
+        window.speechSynthesis.cancel()
     }
 }
 function setSearchNameModel(uuid) {
@@ -414,6 +428,7 @@ async function play(queued) {
     })
 }
 function textToSpeech(pid, text) {
+    if (!audioEnabled.value) return
     if (!store.elevenlabs.XI_API_KEY || !store.elevenlabs.voiceId || !store.elevenlabs.voiceModel) {
         textToSpeechSystem(pid, text)
     } else {
