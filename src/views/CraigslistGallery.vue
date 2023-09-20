@@ -2,6 +2,7 @@
     <v-container class="h-100 d-flex align-center flex-column" fluid>
         <div class="d-flex align-center justify-center" :class="smAndDown ? 'flex-column' : ''">
             <div v-if="textToSpeechConfigured" class="d-flex align-center">
+                <v-btn v-if="Object.keys(store.audioQueue).length" variant="text" @click="playQueue" class="mr-4" rounded>play queue</v-btn>
                 <audio controls autoplay id="sound">
                     <source v-if="soundToPlay" :src="soundToPlay" type="audio/mpeg">
                 </audio>
@@ -9,13 +10,11 @@
             </div>
             <v-btn v-else @click="dialogs.tts = true" rounded>setup text to speech</v-btn>
             <v-btn variant="text" @click="dialogs.add = true" class="text-body-2" prepend-icon="add" v-if="!store.isLinkedDevice">add a new search</v-btn>
-            <v-btn variant="text" @click="linkDeviceHandler" class="text-body-2" prepend-icon="sync" v-if="!store.isLinkedDevice && !smAndDown">link device</v-btn>
-            <v-chip v-else class="ml-4" :class="smAndDown ? 'mt-2' : ''">linked to {{ store.linkCode }}</v-chip>
+            <v-btn variant="text" rounded @click="linkDeviceHandler" class="text-body-2" prepend-icon="link" v-if="!store.isLinkedDevice && !smAndDown">link device</v-btn>
+            <v-chip v-else class="mx-4" :class="smAndDown ? 'mt-2' : ''">linked to {{ store.linkCode }}</v-chip>
+            <v-btn variant="text" rounded @click="unlinkDeviceHandler" class="text-body-2" prepend-icon="link_off" v-if="store.isLinkedDevice && !smAndDown">unlink device</v-btn>
         </div>
         <v-sheet width="100%" v-for="(search, searchIndex) of store.clSearches">
-            <audio :id="`sound-${search.uuid}`">
-                <source v-if="sounds[search.uuid]" :src="sounds[search.uuid]" type="audio/mpeg">
-            </audio>
             <v-row class="d-flex align-center">
                 <v-col :cols="3" class="d-flex align-center text-caption">
                     <div class="text-no-wrap text-truncate" style="cursor: pointer" v-if="!editing[search.uuid]" @click="editing[search.uuid] = true">{{ search.name }}</div>
@@ -134,14 +133,12 @@ import io from 'socket.io-client'
 import * as cheerio from 'cheerio'
 import prettyMilliseconds from 'pretty-ms'
 import { VSlideGroup } from 'vuetify/components/VSlideGroup'
-import { map } from 'async'
+import { mapSeries } from 'async'
 import draggable from 'vuedraggable'
 import { watch } from 'vue'
 import { v5 as uuidv5 } from 'uuid'
-import { customAlphabet } from 'nanoid'
 
 const { smAndDown } = useDisplay()
-const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 3)
 const rules = {
     url: [
         (v) => !!v || `url is required.`,
@@ -153,13 +150,11 @@ const textToSpeechConfigured = computed(() => store.elevenlabs.XI_API_KEY && sto
 const linkSetup = ref(false)
 const soundToPlay = ref()
 const debounce = ref()
-const audioQueue = ref({})
 const isMounted = ref(false)
 const interval = ref()
 const checked = ref({})
 const hovering = ref({})
 const editing = ref({})
-const sounds = ref({})
 const newName = ref()
 const newSearchName = ref()
 const newUrl = ref()
@@ -172,7 +167,6 @@ const dialogs = ref({
 const store = useAppStore()
 const maxListingsPerSearch = smAndDown.value ? 7 : 21
 const data = ref({})
-const ttsPidMap = ref({})
 const sio = io(VITE_API_SERVER + '/cl', {
     transports: ['websocket'],
     path: '/ws',
@@ -181,7 +175,7 @@ const sio = io(VITE_API_SERVER + '/cl', {
     .on('audioQueue', queue => {
         if (store.isLinkedDevice) {
             const remoteQueue = JSON.parse(queue)
-            audioQueue.value = Object.values(remoteQueue).reduce((queued, cur) => {
+            store.audioQueue = Object.values(remoteQueue).reduce((queued, cur) => {
                 if (cur.base64) {
                     cur.dataUrl = base64ToDataUrl(cur.base64)
                     return { ...queued, [cur.pid]: cur }
@@ -219,11 +213,17 @@ function sort(direction, url) {
         store.clSearches.splice(direction === 'up' ? index - 1 : index, 0, search)
     }
 }
+function unlinkDeviceHandler() {
+    sio.emit('unlink', store.linkCode, response => {
+        store.isLinkedDevice = false
+        store.linkCode = undefined
+    })
+}
 function linkDeviceHandler() {
     dialogs.value.link = true
-    store.linkCode = nanoid()
-    sio.emit('link', store.linkCode, response => {
-        if (/link setup/i.test(response)) {
+    sio.emit('link', code => {
+        if (code) {
+            store.linkCode = code
             linkSetup.value = true
         }
     })
@@ -244,11 +244,11 @@ function newSearchHandler() {
     })
     dialogs.value.add = false
 }
-function deleteHandler(url) {
-    const index = store.clSearches.findIndex(search => search.url === url)
+function deleteHandler(uuid) {
+    const index = store.clSearches.findIndex(search => search.uuid === uuid)
     if (index !== -1) {
         store.clSearches.splice(index, 1)
-        sio.emit('delete', url)
+        sio.emit('delete', uuid)
     }
 }
 function setSearchNameModel(uuid) {
@@ -314,7 +314,6 @@ function parse(result) {
         listings: {}
     }
     data.value[uuid].checked = Date.now()
-    sounds.value[uuid] = '/323208_4347097-lq.mp3'
 
     $searchResults.each((_index, element) => {
         const pid = $(element).attr('data-pid')
@@ -327,7 +326,7 @@ function parse(result) {
             if (isMounted.value) {
                 // queue 
                 if (!store.isLinkedDevice) {
-                    audioQueue.value.pid = { pid, href, title }
+                    store.audioQueue[pid] = { pid, href, title, createdAt: Date.now() }
                     textToSpeech(pid, title)
                 }
             }
@@ -352,24 +351,21 @@ function parse(result) {
     interval.value = setInterval(() => {
         if (data.value && Object.keys(data.value).length) {
             Object.values(data.value).forEach(listing => {
-                checked.value[listing.uuid] = prettyMilliseconds(Date.now() - data.value[listing.uuid].checked, { compact: true })
+                checked.value[listing.uuid] = prettyMilliseconds(Date.now() - data.value[listing.uuid].checked, { secondsDecimalDigits: 0 })
             })
 
         }
     }, 1000)
 }
 onMounted(() => {
-    const searchParams = new URLSearchParams(window.location.search)
-    const link = searchParams.get('link')
-
-    store.linkCode = link || store.linkCode
-    store.linkCode = store.linkCode?.toUpperCase()
-    // reconnect a link on reload
-    sio.emit('relink', store.linkCode, response => {
-        console.log(response)
-    })
-    if (link) {
+    if (/\/link/.test(window.location.pathname) && !store.isLinkedDevice) {
         dialogs.value.linked = true
+    }
+    if (store.linkCode) {
+        // reconnect a link on reload
+        sio.emit('relink', store.linkCode, response => {
+            console.log(response)
+        })
     }
     sio.on('update', (result) => parse(result))
     if (!store.isLinkedDevice) {
@@ -382,90 +378,107 @@ onMounted(() => {
     setTimeout(() => isMounted.value = true, 11000)
 })
 async function play(queued) {
-    const audioEl = document.getElementById('sound')
-    soundToPlay.value = undefined
-    soundToPlay.value = queued.dataUrl
-    await audioEl.play()
+    return await new Promise(resolve => {
+        const audioEl = document.getElementById('sound')
+        audioEl.src = base64ToDataUrl(queued.base64)
+        audioEl.onended = async event => {
+            await new Promise(r => setTimeout(r, 1000))
+            resolve(true)
+        }
+        audioEl.oncomplete = async event => {
+            await new Promise(r => setTimeout(r, 1000))
+            resolve(true)
+        }
+        audioEl.onerror = error => resolve(false)
+        audioEl.play()
+    })
 }
-function textToSpeech(pid, text, retry = 0) {
-    if (!store.elevenlabs.XI_API_KEY || !store.elevenlabs.voiceId || !store.elevenlabs.voiceModel) return
-    if (ttsPidMap.value[pid]) return
-    if (debounce.value) clearTimeout(debounce.value)
-    debounce.value = setTimeout(() => {
-        const ws = new WebSocket(`wss://api.elevenlabs.io/v1/text-to-speech/${store.elevenlabs.voiceId}/stream-input?model_id=${store.elevenlabs.voiceModel}`)
-        const audioChunks = []
+function textToSpeech(pid, text) {
+    if (!store.elevenlabs.XI_API_KEY || !store.elevenlabs.voiceId || !store.elevenlabs.voiceModel) {
+        textToSpeechSystem(pid, text)
+    } else {
+        textToSpeechElevenLabs(pid, text)
+    }
+}
+function textToSpeechSystem(pid, text) {
+    const utterance = new SpeechSynthesisUtterance(text)
+    window.speechSynthesis.speak(utterance)
+    delete store.audioQueue[pid]
+}
+function textToSpeechElevenLabs(pid, text, retry = 0) {
+    if (store.audioQueue[pid].base64) return
+    const ws = new WebSocket(`wss://api.elevenlabs.io/v1/text-to-speech/${store.elevenlabs.voiceId}/stream-input?model_id=${store.elevenlabs.voiceModel}`)
+    const audioChunks = []
 
-        ws.onopen = function (event) {
-            const bosMessage = {
-                text: ' ',
-                'xi_api_key': store.elevenlabs.XI_API_KEY
-            }
-            ws.send(JSON.stringify(bosMessage))
-
-            ws.send(JSON.stringify({
-                text: `${text} `,
-                try_trigger_generation: true
-            }))
-
-            ws.send(JSON.stringify({
-                "text": ''
-            }))
+    ws.onopen = function (event) {
+        const bosMessage = {
+            text: ' ',
+            'xi_api_key': store.elevenlabs.XI_API_KEY
         }
-        ws.onerror = function (error) {
-            console.error(`WebSocket Error: ${error}`)
+        ws.send(JSON.stringify(bosMessage))
+
+        ws.send(JSON.stringify({
+            text: `${text} `,
+            try_trigger_generation: true
+        }))
+
+        ws.send(JSON.stringify({
+            "text": ''
+        }))
+    }
+    ws.onerror = function (error) {
+        console.error(`WebSocket Error: ${error}`)
+    }
+    ws.onmessage = function (event) {
+        const response = JSON.parse(event.data)
+
+        // console.log("Server response:", response)
+
+        if (!response.audio) {
+            console.log("No audio data in the response")
         }
-        ws.onmessage = function (event) {
-            const response = JSON.parse(event.data)
 
-            // console.log("Server response:", response)
+        if (response.isFinal) {
+            if (store.audioQueue[pid]) {
+                const blob = new Blob(audioChunks, { type: 'audio/mpeg' })
+                toBase64(blob, base64Encoded => {
+                    store.audioQueue[pid] = {
+                        ...store.audioQueue[pid],
+                        base64: base64Encoded
+                    }
+                })
 
-            if (!response.audio) {
-                console.log("No audio data in the response")
-            }
-
-            if (response.isFinal) {
-                if (audioQueue.value.pid) {
-                    const blob = new Blob(audioChunks, { type: 'audio/mpeg' })
-                    const dataUrl = URL.createObjectURL(blob)
-                    toBase64(blob, base64Encoded => {
-                        audioQueue.value.pid = {
-                            ...audioQueue.value.pid,
-                            base64: base64Encoded,
-                            dataUrl
-                        }
-                    })
-
-                }
-            }
-
-            if (response.audio) {
-                const audioBlob = new Blob(
-                    [
-                        new Uint8Array(
-                            atob(response.audio)
-                                .split("")
-                                .map((char) => char.charCodeAt(0))
-                        ),
-                    ],
-                    { type: "audio/mpeg" }
-                )
-                audioChunks.push(audioBlob)
             }
         }
-        ws.onclose = function (event) {
-            if (event.wasClean) {
-                if (/max/i.test(event.reason) && retry < 3) {
-                    retry += 1
-                    setTimeout(() => textToSpeech(pid, text, retry), Math.random() * (30000 - 50000) + 50000)
-                } else {
-                    ttsPidMap.value[pid] = new Date()
-                    console.info(`Connection closed cleanly, code=${event.code}, reason=${event.reason}`)
-                }
+
+        if (response.audio) {
+            const audioBlob = new Blob(
+                [
+                    new Uint8Array(
+                        atob(response.audio)
+                            .split("")
+                            .map((char) => char.charCodeAt(0))
+                    ),
+                ],
+                { type: "audio/mpeg" }
+            )
+            audioChunks.push(audioBlob)
+        }
+    }
+    ws.onclose = function (event) {
+        if (event.wasClean) {
+            if (/max/i.test(event.reason) && retry < 3) {
+                retry += 1
+                setTimeout(() => textToSpeechElevenLabs(pid, text, retry), Math.random() * (30000 - 50000) + 50000)
+            } else if (/quota/i.test(event.reason)) {
+                textToSpeechSystem(pid, text)
             } else {
-                console.warn('Connection died')
+                console.info(`Connection closed cleanly, code=${event.code}, reason=${event.reason}`)
             }
+        } else {
+            console.warn('Connection died')
         }
-    }, 500)
+    }
 }
 function toBase64(blob, callback) {
     const reader = new FileReader()
@@ -477,9 +490,9 @@ function toBase64(blob, callback) {
 }
 function base64ToDataUrl(base64String) {
     const binaryString = atob(base64String)
-    const bytes = new Uint8Array(binaryString.length);
+    const bytes = new Uint8Array(binaryString.length)
     for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
+        bytes[i] = binaryString.charCodeAt(i)
     }
     const blob = new Blob([bytes], { type: 'audio/mpeg' })
 
@@ -487,19 +500,36 @@ function base64ToDataUrl(base64String) {
 
     return dataUrl
 }
+async function playQueue(queue) {
+    const withSound = Object.values(queue || store.audioQueue)
+        .map(queued => {
+            if (queued.createdAt > Date.now() - (60000 * 5)) {
+                console.log('cleaning stale entry', queued)
+                queue ? delete queue[queued.pid] : delete store.audioQueue[queued.pid]
+            }
+            return queued
+        })
+        .filter(queued => queued?.base64)
 
-onBeforeUnmount(() => clearInterval(interval.value))
-watch(audioQueue, async queue => {
-    if (!store.isLinkedDevice) {
-        sio.emit('audioQueue', JSON.stringify(queue))
-    }
-    const withSound = Object.values(queue).filter(queued => queued.dataUrl)
-    await map(withSound, async queued => {
-        await play(queued)
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        // cleanup and remove played items
-        delete audioQueue.value[queued.pid]
+    // delete stale entries
+    
+    await mapSeries(withSound, async queued => {
+        const didPlay = await play(queued)
+        if (didPlay) {
+            // cleanup and remove played items
+            delete store.audioQueue[queued.pid]
+        }
     })
+}
+onBeforeUnmount(() => clearInterval(interval.value))
+watch(store.audioQueue, async queue => {
+    if (debounce.value) clearTimeout(debounce.value)
+    debounce.value = setTimeout(() => {
+        if (!store.isLinkedDevice) {
+            sio.emit('audioQueue', JSON.stringify(queue))
+        }
+        playQueue(queue)
+    }, 1000)
 }, {
     deep: true
 })

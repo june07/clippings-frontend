@@ -10,6 +10,7 @@ export const useAppStore = defineStore("app", {
             voiceId: undefined,
             voiceModel: undefined,
         },
+        audioQueue: {},
         $import: (remoteStore, state) => {
             Object.entries(remoteStore).forEach(kv => state[kv[0]] = kv[1])
         },
