@@ -57,7 +57,7 @@
                 </v-slide-group-item>
             </v-slide-group>
         </v-sheet>
-        <v-dialog transition="dialog-bottom-transition" width="auto" min-width="700" v-model="dialogs.add">
+        <v-dialog transition="dialog-bottom-transition" width="auto" :min-width="smAndDown ? '100%' : 700" v-model="dialogs.add">
             <v-card rounded="xl" class="pa-4" style="opacity: 0.96">
                 <v-card-title class="font-weight-light text-center">Add a new search</v-card-title>
                 <v-card-subtitle class="font-weight-light text-center">Go ahead, do it!</v-card-subtitle>
@@ -70,7 +70,7 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
-        <v-dialog transition="dialog-bottom-transition" width="auto" min-width="700" v-model="dialogs.link">
+        <v-dialog transition="dialog-bottom-transition" width="auto" :min-width="smAndDown ? '100%' : 700" v-model="dialogs.link">
             <v-card rounded="xl" class="pa-4" style="opacity: 0.96">
                 <v-card-title class="font-weight-light text-center">Link a device</v-card-title>
                 <v-card-subtitle class="font-weight-light text-center">Enter the code from the device you want to link</v-card-subtitle>
@@ -80,7 +80,7 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
-        <v-dialog transition="dialog-bottom-transition" width="auto" min-width="700" v-model="dialogs.linked">
+        <v-dialog transition="dialog-bottom-transition" width="auto" :min-width="smAndDown ? '100%' : 700" v-model="dialogs.linked">
             <v-card rounded="xl" class="pa-4" style="opacity: 0.96">
                 <v-card-title class="font-weight-light text-center">Link this device</v-card-title>
                 <v-card-subtitle class="font-weight-light text-center">Link this device.</v-card-subtitle>
@@ -95,7 +95,7 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
-        <v-dialog transition="dialog-bottom-transition" width="auto" min-width="700" v-model="dialogs.tts">
+        <v-dialog transition="dialog-bottom-transition" width="auto" :min-width="smAndDown ? '100%' : 700" v-model="dialogs.tts">
             <v-card rounded="xl" class="pa-4" style="opacity: 0.96">
                 <v-card-title class="font-weight-light text-center">Setup text to speech</v-card-title>
                 <v-card-subtitle class="font-weight-light text-center">https://elevenlabs.io to get a FREE api key</v-card-subtitle>
