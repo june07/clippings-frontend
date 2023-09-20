@@ -411,6 +411,7 @@ function textToSpeech(pid, text) {
     }
 }
 function textToSpeechSystem(pid, text) {
+    if (store.audioQueue[pid].played) return
     const utterance = new SpeechSynthesisUtterance(text)
     window.speechSynthesis.speak(utterance)
     store.audioQueue[pid].played = 'system'
