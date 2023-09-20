@@ -295,6 +295,16 @@ function estimateTimestampFromRelativeTime(relativeTime) {
 function mostRecent(uuid) {
     const sorted = data.value[uuid]?.listings ? Object.values(data.value[uuid].listings).sort((a, b) => a.time > b.time ? -1 : 0) : []
     const mostRecent = sorted.length ? sorted.slice(0, maxListingsPerSearch) : []
+    if (isMounted.value) {
+        mostRecent.forEach(listing => {
+            const { pid, href, title } = listing
+            // queue 
+            if (!store.isLinkedDevice && !store.audioQueue[pid]) {
+                store.audioQueue[pid] = { pid, href, title, createdAt: Date.now() }
+                textToSpeech(pid, title)
+            }
+        })
+    }
     return mostRecent
 }
 function parse(result) {
@@ -321,13 +331,14 @@ function parse(result) {
 
         if (!pid || !title) return
         if (!data.value[uuid].listings[pid]) {
+            /*
             if (isMounted.value) {
                 // queue 
                 if (!store.isLinkedDevice) {
                     store.audioQueue[pid] = { pid, href, title, createdAt: Date.now() }
                     textToSpeech(pid, title)
                 }
-            }
+            }*/
             data.value[uuid].listings[pid] = {
                 pid,
                 imageUrls: []
@@ -501,7 +512,7 @@ function base64ToDataUrl(base64String) {
 async function playQueue(queue) {
     const withSound = Object.values(queue || store.audioQueue)
         .map(queued => {
-            if (queued.createdAt > Date.now() - (60000 * 5)) {
+            if (queued.createdAt < Date.now() - (60000 * 5)) {
                 console.log('cleaning stale entry', queued)
                 queue ? delete queue[queued.pid] : delete store.audioQueue[queued.pid]
             }
@@ -510,7 +521,7 @@ async function playQueue(queue) {
         .filter(queued => queued?.base64)
 
     // delete stale entries
-    
+
     await mapSeries(withSound, async queued => {
         const didPlay = await play(queued)
         if (didPlay) {
