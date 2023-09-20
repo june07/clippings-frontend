@@ -75,7 +75,7 @@
                 <v-card-title class="font-weight-light text-center">Link a device</v-card-title>
                 <v-card-subtitle class="font-weight-light text-center">Enter the code from the device you want to link</v-card-subtitle>
                 <v-card-text>
-                    <p>On your device, go to <span class="font-weight-bold">craiglist.june07.com/link</span> and enter this code:</p>
+                    <p>On your device, go to <span class="font-weight-bold">craiglist.june07.com/#link</span> and enter this code:</p>
                     <p class="text-h4 text-center" :class="linkSetup ? 'text-green' : ''">{{ store.linkCode }}</p>
                 </v-card-text>
             </v-card>
@@ -367,7 +367,7 @@ function parse(result) {
     }, 1000)
 }
 onMounted(() => {
-    if (/\/link/.test(window.location.pathname) && !store.isLinkedDevice) {
+    if (/#link/.test(window.location.hash) && !store.isLinkedDevice) {
         dialogs.value.linked = true
     }
     if (store.linkCode) {
