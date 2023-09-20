@@ -11,8 +11,8 @@
                 <v-btn variant="text" @click="playQueue" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="smAndDown ? undefined : 'video_library'" :icon="smAndDown ? 'video_library' : undefined">
                     <template v-slot:default v-if="!smAndDown">play queue</template>
                 </v-btn>
-                <v-btn variant="text" @click="audioButtonHandler" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="!smAndDown && audioEnabled ? 'volume_up' : 'volume_off'" :icon="smAndDown ? audioEnabled ? 'volume_up' : 'volume_off' : undefined">
-                    <template v-slot:default v-if="!smAndDown">{{ audioEnabled ? 'disable' : 'enable' }} audio</template>
+                <v-btn variant="text" @click="audioButtonHandler" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="!smAndDown && store.audioEnabled ? 'volume_up' : 'volume_off'" :icon="smAndDown ? store.audioEnabled ? 'volume_up' : 'volume_off' : undefined">
+                    <template v-slot:default v-if="!smAndDown">{{ store.audioEnabled ? 'disable' : 'enable' }} audio</template>
                 </v-btn>
             </div>
             <v-btn variant="text" @click="dialogs.add = true" class="text-body-2" prepend-icon="add" v-if="!store.isLinkedDevice">add a new search</v-btn>
@@ -154,7 +154,6 @@ const rules = {
 }
 const { VITE_API_SERVER } = import.meta.env
 const linkSetup = ref(false)
-const audioEnabled = ref(true)
 const soundToPlay = ref()
 const debounce = ref()
 const isMounted = ref(false)
@@ -263,8 +262,8 @@ function deleteHandler(uuid) {
     }
 }
 function audioButtonHandler() {
-    audioEnabled.value = !audioEnabled.value
-    if (!audioEnabled.value) {
+    store.audioEnabled = !store.audioEnabled
+    if (!store.audioEnabled) {
         window.speechSynthesis.cancel()
     }
 }
@@ -428,7 +427,7 @@ async function play(queued) {
     })
 }
 function textToSpeech(pid, text) {
-    if (!audioEnabled.value) return
+    if (!store.audioEnabled) return
     if (!store.elevenlabs.XI_API_KEY || !store.elevenlabs.voiceId || !store.elevenlabs.voiceModel) {
         textToSpeechSystem(pid, text)
     } else {
