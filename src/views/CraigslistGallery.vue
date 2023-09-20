@@ -299,7 +299,7 @@ function mostRecent(uuid) {
         mostRecent.forEach(listing => {
             const { pid, href, title } = listing
             // queue 
-            if (!store.isLinkedDevice && !store.audioQueue[pid]?.played) {
+            if (!store.isLinkedDevice && !store.audioQueue[pid]) {
                 store.audioQueue[pid] = { pid, href, title, createdAt: Date.now() }
                 console.log(pid, title)
                 textToSpeech(pid, `next listing... ${title}`)
