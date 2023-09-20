@@ -538,7 +538,7 @@ function base64ToDataUrl(base64String) {
 async function playQueue(queue) {
     const withSound = Object.values(queue || store.audioQueue)
         .map(queued => {
-            if (queued.createdAt < Date.now() - (60000 * 5)) {
+            if (queued.createdAt < Date.now() - (60000 * 60)) {
                 console.log('cleaning stale entry', queued)
                 queue ? delete queue[queued.pid] : delete store.audioQueue[queued.pid]
             }
