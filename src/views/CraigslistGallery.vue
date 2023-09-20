@@ -299,7 +299,7 @@ function mostRecent(uuid) {
         mostRecent.forEach(listing => {
             const { pid, href, title } = listing
             // queue 
-            if (!store.isLinkedDevice && !store.audioQueue[pid]) {
+            if (!store.isLinkedDevice && !store.audioQueue[pid]?.played) {
                 store.audioQueue[pid] = { pid, href, title, createdAt: Date.now() }
                 textToSpeech(pid, title)
             }
@@ -412,7 +412,7 @@ function textToSpeech(pid, text) {
 function textToSpeechSystem(pid, text) {
     const utterance = new SpeechSynthesisUtterance(text)
     window.speechSynthesis.speak(utterance)
-    delete store.audioQueue[pid]
+    store.audioQueue[pid].played = 'system'
 }
 function textToSpeechElevenLabs(pid, text, retry = 0) {
     if (store.audioQueue[pid].base64) return
