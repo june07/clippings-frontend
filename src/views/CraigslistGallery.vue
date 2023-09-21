@@ -31,6 +31,7 @@
                     <v-spacer />
                 </v-col>
                 <v-spacer />
+                <v-btn variant="text" class="text-body-2" :icon="getSearchTTS(search.uuid) ? 'volume_up' : 'volume_off'" @click="toggleSearchTTS(search.uuid)" />
                 <v-btn v-if="searchIndex !== 0" variant="text" class="text-body-2" icon="arrow_upward" @click="sort('up', search.uuid)" />
                 <v-btn v-if="searchIndex !== store.clSearches.length - 1" variant="text" class="text-body-2" icon="arrow_downward" @click="sort('down', search.uuid)" />
                 <v-btn variant="text" class="text-body-2" prepend-icon="delete" @click="deleteHandler(search.uuid)">
@@ -248,7 +249,7 @@ function linkedDeviceHandler() {
     })
 }
 function newSearchHandler() {
-    store.clSearches.push({ name: newName.value || new Date().toLocaleString(), url: newUrl.value, uuid: uuidv5(newUrl.value, uuidv5.URL) })
+    store.clSearches.push({ name: newName.value || new Date().toLocaleString(), url: newUrl.value, uuid: uuidv5(newUrl.value, uuidv5.URL), tts: true })
     sio.emit('get', newUrl.value, (result) => {
         parse(result)
     })
@@ -273,6 +274,22 @@ function setSearchNameModel(uuid) {
         store.clSearches[index].name = newSearchName.value
     }
     editing.value[uuid] = false
+}
+function getSearchTTS(uuid) {
+    const index = store.clSearches.findIndex(search => search.uuid === uuid)
+    if (index !== -1) {
+        return store.clSearches[index].tts
+    }
+}
+function toggleSearchTTS(uuid) {
+    const index = store.clSearches.findIndex(search => search.uuid === uuid)
+    if (index !== -1) {
+        // can remove this after change
+        if (store.clSearches[index].tts === undefined) {
+            store.clSearches[index].tts = true
+        }
+        store.clSearches[index].tts = !store.clSearches[index].tts
+    }
 }
 function estimateTimestampFromRelativeTime(relativeTime) {
     if (!relativeTime) return
@@ -325,7 +342,9 @@ function mostRecent(uuid) {
                     lastTTSSearch.value = uuid
                     ttsString = `search name: ${(store.clSearches.find(search => search.uuid === uuid)).name}, ${ttsString}`
                 }
-                textToSpeech(pid, ttsString)
+                if (store.clSearches.find(search => search.uuid === uuid).tts) {
+                    textToSpeech(pid, ttsString)
+                }
             }
         })
     }
@@ -355,14 +374,6 @@ function parse(result) {
 
         if (!pid || !title) return
         if (!data.value[uuid].listings[pid]) {
-            /*
-            if (isMounted.value) {
-                // queue 
-                if (!store.isLinkedDevice) {
-                    store.audioQueue[pid] = { pid, href, title, createdAt: Date.now() }
-                    textToSpeech(pid, title)
-                }
-            }*/
             data.value[uuid].listings[pid] = {
                 pid,
                 imageUrls: []
