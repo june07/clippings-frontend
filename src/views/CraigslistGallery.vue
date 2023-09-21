@@ -1,8 +1,8 @@
 <template>
     <v-container class="h-100 d-flex align-center flex-column" fluid>
         <div class="d-flex align-center justify-center" :class="smAndDown ? 'flex-column' : ''">
-            <div class="d-flex align-center" v-if="!unplayedInQueue">
-                <audio controls autoplay id="sound">
+            <div class="d-flex align-center">
+                <audio v-if="!unplayedInQueue" controls autoplay id="sound">
                     <source v-if="soundToPlay" :src="soundToPlay" type="audio/mpeg">
                 </audio>
                 <v-btn @click="dialogs.tts = true" variant="text" icon="settings"></v-btn>
