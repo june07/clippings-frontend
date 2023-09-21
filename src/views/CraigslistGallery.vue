@@ -5,13 +5,14 @@
                 <audio v-show="!unplayedInQueue" controls autoplay id="sound">
                     <source v-if="soundToPlay" :src="soundToPlay" type="audio/mpeg">
                 </audio>
-                <v-btn @click="dialogs.tts = true" variant="text" icon="settings"></v-btn>
+                <v-btn v-if="!smAndDown" @click="dialogs.tts = true" variant="text" icon="settings"></v-btn>
             </div>
             <div class="d-flex" :class="smAndDown ? 'mt-2 align-self-start' : ''">
-                <v-btn variant="text" @click="playQueue" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="smAndDown ? undefined : 'video_library'" :icon="smAndDown ? 'video_library' : undefined">
+                <v-btn v-if="smAndDown" @click="dialogs.tts = true" variant="text" icon="settings" density="compact"></v-btn>
+                <v-btn variant="text" @click="playQueue" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="smAndDown ? undefined : 'video_library'" :icon="smAndDown ? 'video_library' : undefined" :density="smAndDown ? 'compact' : undefined">
                     <template v-slot:default v-if="!smAndDown && unplayedInQueue">play queue</template>
                 </v-btn>
-                <v-btn variant="text" @click="audioButtonHandler" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="!smAndDown && store.audioEnabled ? 'volume_up' : 'volume_off'" :icon="smAndDown ? store.audioEnabled ? 'volume_up' : 'volume_off' : undefined">
+                <v-btn variant="text" @click="audioButtonHandler" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="!smAndDown && store.audioEnabled ? 'volume_up' : 'volume_off'" :icon="smAndDown ? store.audioEnabled ? 'volume_up' : 'volume_off' : undefined" :density="smAndDown ? 'compact' : undefined">
                     <template v-slot:default v-if="!smAndDown">{{ store.audioEnabled ? 'disable' : 'enable' }} audio</template>
                 </v-btn>
             </div>
