@@ -557,13 +557,11 @@ async function playQueue(queue) {
         })
         .filter(queued => queued?.base64)
 
-    // delete stale entries
-
     await mapSeries(withSound, async queued => {
         const didPlay = await play(queued)
         if (didPlay) {
             // cleanup and remove played items
-            delete store.audioQueue[queued.pid]
+            store.audioQueue[queued.pid].played = 'ai'
         }
     })
 }
