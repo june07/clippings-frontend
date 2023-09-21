@@ -9,7 +9,7 @@
             </div>
             <div class="d-flex" :class="smAndDown ? 'mt-2 align-self-start' : ''">
                 <v-btn variant="text" @click="playQueue" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="smAndDown ? undefined : 'video_library'" :icon="smAndDown ? 'video_library' : undefined">
-                    <template v-slot:default v-if="!smAndDown">play queue</template>
+                    <template v-slot:default v-if="!smAndDown && unplayedInQueue">play queue</template>
                 </v-btn>
                 <v-btn variant="text" @click="audioButtonHandler" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="!smAndDown && store.audioEnabled ? 'volume_up' : 'volume_off'" :icon="smAndDown ? store.audioEnabled ? 'volume_up' : 'volume_off' : undefined">
                     <template v-slot:default v-if="!smAndDown">{{ store.audioEnabled ? 'disable' : 'enable' }} audio</template>
@@ -156,7 +156,10 @@ const rules = {
 const { VITE_API_SERVER } = import.meta.env
 const linkSetup = ref(false)
 const soundToPlay = ref()
-const debounce = ref()
+const debounces = ref({
+    audioQueue: undefined,
+    playQueue: undefined
+})
 const isMounted = ref(false)
 const interval = ref()
 const checked = ref({})
@@ -378,6 +381,7 @@ function parse(result) {
                 pid,
                 imageUrls: []
             }
+            playQueue()
         }
 
         $(element).find('.gallery-inner img').each((_index, element) => {
@@ -547,32 +551,35 @@ function base64ToDataUrl(base64String) {
     return dataUrl
 }
 async function playQueue(queue) {
-    const withSound = Object.values(queue || store.audioQueue)
-        .map(queued => {
-            if (queued.createdAt < Date.now() - (60000 * 60)) {
-                console.log('cleaning stale entry', queued)
-                queue ? delete queue[queued.pid] : delete store.audioQueue[queued.pid]
-            }
-            return queued
-        })
-        .filter(queued => queued?.base64)
+    if (debounces.value.playQueue) clearTimeout(debounces.value.playQueue)
+    debounces.value.playQueue = setTimeout(async () => {
+        const withSound = Object.values(queue || store.audioQueue)
+            .map(queued => {
+                if (queued.createdAt < Date.now() - (60000 * 60)) {
+                    console.log('cleaning stale entry', queued)
+                    queue ? delete queue[queued.pid] : delete store.audioQueue[queued.pid]
+                }
+                return queued
+            })
+            .filter(queued => queued?.base64)
 
-    await mapSeries(withSound, async queued => {
-        const didPlay = await play(queued)
-        if (didPlay) {
-            // cleanup and remove played items
-            store.audioQueue[queued.pid].played = 'ai'
-        }
-    })
+        await mapSeries(withSound, async queued => {
+            const didPlay = await play(queued)
+            if (didPlay) {
+                // cleanup and remove played items
+                store.audioQueue[queued.pid].played = 'ai'
+            }
+        })
+    }, 3000)
 }
 onBeforeUnmount(() => clearInterval(interval.value))
 watch(store.audioQueue, async queue => {
-    if (debounce.value) clearTimeout(debounce.value)
-    debounce.value = setTimeout(() => {
+    if (debounces.value.audioQueue) clearTimeout(debounces.value.audioQueue)
+    debounces.value.audioQueue = setTimeout(() => {
         if (!store.isLinkedDevice) {
             sio.emit('audioQueue', JSON.stringify(queue))
         }
-        playQueue(queue)
+        // playQueue(queue)
     }, 1000)
 }, {
     deep: true
