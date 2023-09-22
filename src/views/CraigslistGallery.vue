@@ -35,7 +35,7 @@
                 <v-btn variant="text" class="text-body-2" :icon="getSearchTTS(search.uuid) ? 'volume_up' : 'volume_off'" @click="toggleSearchTTS(search.uuid)" :density="smAndDown ? 'compact' : undefined" />
                 <v-btn v-if="searchIndex !== 0" variant="text" class="text-body-2" icon="arrow_upward" @click="sort('up', search.uuid)" :density="smAndDown ? 'compact' : undefined" />
                 <v-btn v-if="searchIndex !== store.clSearches.length - 1" variant="text" class="text-body-2" icon="arrow_downward" @click="sort('down', search.uuid)" :density="smAndDown ? 'compact' : undefined" />
-                <v-btn variant="text" class="text-body-2" prepend-icon="delete" @click="deleteHandler(search.uuid)" :density="smAndDown ? 'compact' : undefined">
+                <v-btn variant="text" class="text-body-2" prepend-icon="delete" @click="deleteHandler(search.uuid)" :density="smAndDown ? 'compact' : undefined" :icon="smAndDown ? 'delete' : undefined">
                     <template v-slot:default v-if="!smAndDown">delete <span class="ml-2 font-italic font-weight-medium">{{ search.name }}</span></template>
                 </v-btn>
             </v-row>
