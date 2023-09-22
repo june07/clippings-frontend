@@ -2,7 +2,7 @@
     <v-container class="h-100 d-flex align-center flex-column" fluid>
         <div class="d-flex align-center justify-center" :class="smAndDown ? 'flex-column' : ''">
             <div class="d-flex align-center">
-                <audio v-show="unplayedInQueue" controls autoplay id="sound">
+                <audio v-show="unplayedInQueue && store.audioEnabled" controls autoplay id="sound">
                     <source v-if="soundToPlay" :src="soundToPlay" type="audio/mpeg">
                 </audio>
                 <v-btn v-if="!smAndDown" @click="dialogs.tts = true" variant="text" icon="settings"></v-btn>
