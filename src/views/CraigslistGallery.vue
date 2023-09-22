@@ -36,7 +36,7 @@
                 <v-btn v-if="searchIndex !== 0" variant="text" class="text-body-2" icon="arrow_upward" @click="sort('up', search.uuid)" :density="smAndDown ? 'compact' : undefined" />
                 <v-btn v-if="searchIndex !== store.clSearches.length - 1" variant="text" class="text-body-2" icon="arrow_downward" @click="sort('down', search.uuid)" :density="smAndDown ? 'compact' : undefined" />
                 <v-btn variant="text" class="text-body-2" prepend-icon="delete" @click="deleteHandler(search.uuid)" :density="smAndDown ? 'compact' : undefined">
-                    <span v-if="!smAndDown">delete <span class="ml-2 font-italic font-weight-medium">{{ search.name }}</span></span>
+                    <template v-slot:default v-if="!smAndDown">delete <span class="ml-2 font-italic font-weight-medium">{{ search.name }}</span></template>
                 </v-btn>
             </v-row>
             <v-slide-group class="pa-4" selected-class="bg-success" show-arrows="always" :class="hovering[search.uuid] ? '' : 'hide-arrows'" @mouseenter="hovering[search.uuid] = true" @mouseleave="hovering[search.uuid] = false">
