@@ -2,7 +2,6 @@
     <v-container class="h-100 d-flex align-center flex-column" fluid>
         <div class="d-flex align-center justify-center" :class="smAndDown ? 'flex-column' : ''">
             <div class="d-flex align-center">
-                {{ Object.values(store.audioQueue).find(q => !q.played) }}
                 <audio v-show="unplayedInQueue" controls autoplay id="sound">
                     <source v-if="soundToPlay" :src="soundToPlay" type="audio/mpeg">
                 </audio>
