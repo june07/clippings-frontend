@@ -9,7 +9,7 @@
             </div>
             <div class="d-flex" :class="smAndDown ? 'mt-2 align-self-start' : ''">
                 <v-btn v-if="smAndDown" @click="dialogs.tts = true" variant="text" icon="settings" density="compact"></v-btn>
-                <v-btn variant="text" @click="playQueue" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="smAndDown ? undefined : 'video_library'" :icon="smAndDown ? 'video_library' : undefined" :density="smAndDown ? 'compact' : undefined" v-if="unplayedInQueue">
+                <v-btn variant="text" @click="playQueue" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="smAndDown ? undefined : 'video_library'" :icon="smAndDown ? 'video_library' : undefined" :density="smAndDown ? 'compact' : undefined" v-if="unplayedInQueue && store.audioEnabled">
                     <template v-slot:default v-if="!smAndDown">play queue</template>
                 </v-btn>
                 <v-btn variant="text" @click="audioButtonHandler" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="!smAndDown && store.audioEnabled ? 'volume_up' : 'volume_off'" :icon="smAndDown ? store.audioEnabled ? 'volume_up' : 'volume_off' : undefined" :density="smAndDown ? 'compact' : undefined">
@@ -462,7 +462,13 @@ function textToSpeech(pid, text) {
 }
 function textToSpeechSystem(pid, text) {
     if (store.audioQueue[pid].played) return
-    const utterance = new SpeechSynthesisUtterance(`<break time="1s"/>${text}`)
+    const utterance = new SpeechSynthesisUtterance(`
+<speak version="1.1" xmlns="http://www.w3.org/2001/10/synthesis"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.w3.org/2001/10/synthesis
+        http://www.w3.org/TR/speech-synthesis11/synthesis.xsd"
+    xml:lang="en-US">
+    .<break time="3s"/>${text}</speak>`)
     utterance.onstart = _event => playBell()
     window.speechSynthesis.speak(utterance)
     store.audioQueue[pid].played = 'system'
