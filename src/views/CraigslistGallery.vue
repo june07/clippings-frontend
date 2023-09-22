@@ -26,9 +26,9 @@
                 <v-col :cols="3" class="d-flex align-center text-body-2">
                     <div class="text-no-wrap" style="cursor: pointer" v-if="!editing[search.uuid]" @click="editing[search.uuid] = true">{{ search.name }}</div>
                     <v-text-field variant="outlined" density="compact" hide-details v-model="newSearchName" v-else @change="setSearchNameModel(search.uuid)" placeholder="Search Name" @mouseleave="editing[search.uuid] = false" />
-                    <a :href="search.url" target="_blank" rel="noopener" class="ml-2">craigslist</a>
+                    <a :href="search.url" target="_blank" rel="noopener" class="ml-2">{{ smAndDown ? 'cl' : 'craigslist' }}</a>
                     <div v-if="data[search.uuid]?.checked && !smAndDown" class="ml-8 text-no-trunc">last checked {{ checked[search.uuid] }} ago</div>
-                    <div v-else class="ml-4 text-no-trunc">{{ checked[search.uuid] }}</div>
+                    <div v-else class="ml-4 text-no-wrap">{{ checked[search.uuid] }}</div>
                     <v-spacer />
                 </v-col>
                 <v-spacer />
