@@ -2,33 +2,34 @@
     <v-container class="h-100 d-flex align-center flex-column" fluid>
         <div class="d-flex align-center justify-center" :class="smAndDown ? 'flex-column' : ''">
             <div class="d-flex align-center">
-                <audio v-show="!unplayedInQueue" controls autoplay id="sound">
+                {{ Object.values(store.audioQueue).find(q => !q.played) }}
+                <audio v-show="unplayedInQueue" controls autoplay id="sound">
                     <source v-if="soundToPlay" :src="soundToPlay" type="audio/mpeg">
                 </audio>
                 <v-btn v-if="!smAndDown" @click="dialogs.tts = true" variant="text" icon="settings"></v-btn>
             </div>
             <div class="d-flex" :class="smAndDown ? 'mt-2 align-self-start' : ''">
                 <v-btn v-if="smAndDown" @click="dialogs.tts = true" variant="text" icon="settings" density="compact"></v-btn>
-                <v-btn variant="text" @click="playQueue" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="smAndDown ? undefined : 'video_library'" :icon="smAndDown ? 'video_library' : undefined" :density="smAndDown ? 'compact' : undefined">
-                    <template v-slot:default v-if="!smAndDown && unplayedInQueue">play queue</template>
+                <v-btn variant="text" @click="playQueue" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="smAndDown ? undefined : 'video_library'" :icon="smAndDown ? 'video_library' : undefined" :density="smAndDown ? 'compact' : undefined" v-if="unplayedInQueue">
+                    <template v-slot:default v-if="!smAndDown">play queue</template>
                 </v-btn>
                 <v-btn variant="text" @click="audioButtonHandler" :class="!smAndDown ? 'mr-4' : ''" class="text-body-2" :rounded="!smAndDown" :prepend-icon="!smAndDown && store.audioEnabled ? 'volume_up' : 'volume_off'" :icon="smAndDown ? store.audioEnabled ? 'volume_up' : 'volume_off' : undefined" :density="smAndDown ? 'compact' : undefined">
                     <template v-slot:default v-if="!smAndDown">{{ store.audioEnabled ? 'disable' : 'enable' }} audio</template>
                 </v-btn>
             </div>
-            <v-btn variant="text" @click="dialogs.add = true" class="text-body-2" prepend-icon="add" v-if="!store.isLinkedDevice">add a new search</v-btn>
+            <v-btn variant="text" rounded @click="dialogs.add = true" class="text-body-2" prepend-icon="add" v-if="!store.isLinkedDevice">new search</v-btn>
             <v-btn variant="text" rounded @click="linkDeviceHandler" class="text-body-2" prepend-icon="link" v-if="!store.isLinkedDevice && !smAndDown">link device</v-btn>
             <v-chip v-else-if="store.linkCode" class="mx-4" :class="smAndDown ? 'mt-2' : ''">linked to {{ store.linkCode }}</v-chip>
             <v-btn variant="text" rounded @click="unlinkDeviceHandler" class="text-body-2" prepend-icon="link_off" v-if="store.isLinkedDevice && !smAndDown">unlink device</v-btn>
         </div>
         <v-sheet width="100%" v-for="(search, searchIndex) of store.clSearches">
             <v-row class="d-flex align-center">
-                <v-col :cols="3" class="d-flex align-center text-caption">
-                    <div class="text-no-wrap text-truncate" style="cursor: pointer" v-if="!editing[search.uuid]" @click="editing[search.uuid] = true">{{ search.name }}</div>
+                <v-col :cols="3" class="d-flex align-center text-body-2">
+                    <div class="text-no-wrap" style="cursor: pointer" v-if="!editing[search.uuid]" @click="editing[search.uuid] = true">{{ search.name }}</div>
                     <v-text-field variant="outlined" density="compact" hide-details v-model="newSearchName" v-else @change="setSearchNameModel(search.uuid)" placeholder="Search Name" @mouseleave="editing[search.uuid] = false" />
                     <a :href="search.url" target="_blank" rel="noopener" class="ml-2">craigslist</a>
-                    <div v-if="data[search.uuid]?.checked && !smAndDown" class="ml-8">last checked {{ checked[search.uuid] }} ago</div>
-                    <div v-else class="ml-4">{{ checked[search.uuid] }}</div>
+                    <div v-if="data[search.uuid]?.checked && !smAndDown" class="ml-8 text-no-trunc">last checked {{ checked[search.uuid] }} ago</div>
+                    <div v-else class="ml-4 text-no-trunc">{{ checked[search.uuid] }}</div>
                     <v-spacer />
                 </v-col>
                 <v-spacer />
@@ -45,7 +46,7 @@
                         <v-icon class="new-icon" icon="newspaper" v-if="listing.time > Math.floor((Date.now() - (60000 * 10)) / 1000)" color="yellow" />
                         <v-card :color="listing.imageUrls?.length ? 'yellow-lighten-1' : 'grey-lighten-3'" rounded="xl">
                             <v-carousel transition="fade" :height="smAndDown ? 100 : 250" hide-delimiter-background :show-arrows="hovering[`${listing.pid} ${search.uuid}`] !== undefined && hovering[`${listing.pid} ${search.uuid}`]" @mouseenter="hovering[`${listing.pid} ${search.uuid}`] = true" @mouseleave="hovering[`${listing.pid} ${search.uuid}`] = false">
-                                <span style="position: absolute; z-index: 1" class="text-caption ml-4">{{ listing.pid }}</span>
+                                <span style="position: absolute; z-index: 1" class="text-caption ml-4 text-white">{{ listing.pid }}</span>
                                 <v-carousel-item v-if="listing.imageUrls?.length" v-for="imageUrl of listing.imageUrls" :key="imageUrl">
                                     <v-img :height="smAndDown ? 100 : 250" :width="smAndDown ? 100 : 250" :src="imageUrl" cover style="border-radius: 12px">
                                         <template v-slot:placeholder>
@@ -341,7 +342,7 @@ function mostRecent(uuid) {
             if (!store.isLinkedDevice && !store.audioQueue[pid]) {
                 store.audioQueue[pid] = { pid, href, title, createdAt: Date.now() }
                 console.log(pid, title)
-                let ttsString = `${MODE === 'production' ? 'next' : 'development'}... ${title}`
+                let ttsString = `${MODE === 'production' ? '' : 'development'}... ${title}`
                 if (lastTTSSearch.value !== uuid) {
                     lastTTSSearch.value = uuid
                     ttsString = `search name: ${(store.clSearches.find(search => search.uuid === uuid)).name}, ${ttsString}`
@@ -426,8 +427,18 @@ onMounted(() => {
     }
     setTimeout(() => isMounted.value = true, 11000)
 })
+async function playBell() {
+    await new Promise(resolve => {
+        const audioEl = document.getElementById('sound')
+        audioEl.src = '/mixkit-kids-cartoon-close-bells-2256.wav'
+        audioEl.play()
+        audioEl.onended = async event => {
+            resolve(true)
+        }
+    })
+}
 async function play(queued) {
-    return await new Promise(resolve => {
+    await new Promise(resolve => {
         const audioEl = document.getElementById('sound')
         audioEl.src = base64ToDataUrl(queued.base64)
         audioEl.onended = async event => {
@@ -452,7 +463,8 @@ function textToSpeech(pid, text) {
 }
 function textToSpeechSystem(pid, text) {
     if (store.audioQueue[pid].played) return
-    const utterance = new SpeechSynthesisUtterance(text)
+    const utterance = new SpeechSynthesisUtterance(`<break time="1s"/>${text}`)
+    utterance.onstart = _event => playBell()
     window.speechSynthesis.speak(utterance)
     store.audioQueue[pid].played = 'system'
 }
