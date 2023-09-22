@@ -1,6 +1,6 @@
 <template>
     <v-container class="h-100 d-flex align-center flex-column" fluid>
-        <div class="d-flex align-center justify-center" :class="smAndDown ? 'flex-column' : ''">
+        <div class="d-flex align-center justify-center mb-4" :class="smAndDown ? 'flex-column' : ''">
             <div class="d-flex align-center">
                 <audio v-show="unplayedInQueue && store.audioEnabled" controls autoplay id="sound">
                     <source v-if="soundToPlay" :src="soundToPlay" type="audio/mpeg">
@@ -32,10 +32,10 @@
                     <v-spacer />
                 </v-col>
                 <v-spacer />
-                <v-btn variant="text" class="text-body-2" :icon="getSearchTTS(search.uuid) ? 'volume_up' : 'volume_off'" @click="toggleSearchTTS(search.uuid)" />
-                <v-btn v-if="searchIndex !== 0" variant="text" class="text-body-2" icon="arrow_upward" @click="sort('up', search.uuid)" />
-                <v-btn v-if="searchIndex !== store.clSearches.length - 1" variant="text" class="text-body-2" icon="arrow_downward" @click="sort('down', search.uuid)" />
-                <v-btn variant="text" class="text-body-2" prepend-icon="delete" @click="deleteHandler(search.uuid)">
+                <v-btn variant="text" class="text-body-2" :icon="getSearchTTS(search.uuid) ? 'volume_up' : 'volume_off'" @click="toggleSearchTTS(search.uuid)" :density="smAndDown ? 'compact' : undefined" />
+                <v-btn v-if="searchIndex !== 0" variant="text" class="text-body-2" icon="arrow_upward" @click="sort('up', search.uuid)" :density="smAndDown ? 'compact' : undefined" />
+                <v-btn v-if="searchIndex !== store.clSearches.length - 1" variant="text" class="text-body-2" icon="arrow_downward" @click="sort('down', search.uuid)" :density="smAndDown ? 'compact' : undefined" />
+                <v-btn variant="text" class="text-body-2" prepend-icon="delete" @click="deleteHandler(search.uuid)" :density="smAndDown ? 'compact' : undefined">
                     <span v-if="!smAndDown">delete <span class="ml-2 font-italic font-weight-medium">{{ search.name }}</span></span>
                 </v-btn>
             </v-row>
