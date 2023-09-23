@@ -333,10 +333,10 @@ onMounted(() => {
     sio.on('update', (payload) => {
         const { diff } = payload
         data.value[diff.uuid] = {
-            listings: {
+            listings: data.value[diff.uuid]?.listings ? {
                 ...data.value[diff.uuid].listings,
                 ...diff.listings
-            }
+            } : diff.listings
         }
     })
     if (!store.isLinkedDevice) {
