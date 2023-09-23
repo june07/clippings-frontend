@@ -254,8 +254,8 @@ function linkedDeviceHandler() {
 }
 function newSearchHandler() {
     store.clSearches.push({ name: newName.value || new Date().toLocaleString(), url: newUrl.value, uuid: uuidv5(newUrl.value, uuidv5.URL), tts: true })
-    sio.emit('get', newUrl.value, (result) => {
-        parse(result)
+    sio.emit('get', newUrl.value, (payload) => {
+        data.value[json.uuid] = payload.json
     })
     dialogs.value.add = false
 }
@@ -295,41 +295,6 @@ function toggleSearchTTS(uuid) {
         store.clSearches[index].tts = !store.clSearches[index].tts
     }
 }
-function estimateTimestampFromRelativeTime(relativeTime) {
-    if (!relativeTime) return
-    // Check for "N h ago" format
-    const hoursAgoMatch = relativeTime.match(/^(\d+)\s*h\s+ago$/)
-    if (hoursAgoMatch) {
-        const hoursAgo = parseInt(hoursAgoMatch[1], 10)
-        const currentTimestamp = Math.floor(Date.now() / 1000) // Current Unix timestamp in seconds
-        const estimatedTimestamp = currentTimestamp - hoursAgo * 3600 // Subtract hours in seconds
-        return estimatedTimestamp
-    }
-
-    const minutessAgoMatch = relativeTime.match(/^(\d+)\s*mins\s+ago$/)
-    if (minutessAgoMatch) {
-        const minutessAgo = parseInt(minutessAgoMatch[1], 10)
-        const currentTimestamp = Math.floor(Date.now() / 1000) // Current Unix timestamp in seconds
-        const estimatedTimestamp = currentTimestamp - minutessAgo * 60 // Subtract hours in seconds
-        return estimatedTimestamp
-    }
-
-    // Check for "M/D" format (month/day)
-    const dateMatch = relativeTime.match(/^(\d+)\/(\d+)$/)
-    if (dateMatch) {
-        const month = parseInt(dateMatch[1], 10)
-        const day = parseInt(dateMatch[2], 10)
-
-        // Assuming the year is the current year
-        const currentYear = new Date().getFullYear()
-        const estimatedTimestamp = Math.floor(
-            new Date(currentYear, month - 1, day).getTime() / 1000
-        ) // Convert to Unix timestamp
-        return estimatedTimestamp
-    }
-
-    return null // Return null if the format doesn't match
-}
 
 function mostRecent(uuid) {
     const sorted = data.value[uuid]?.listings ? Object.values(data.value[uuid].listings).sort((a, b) => a.time > b.time ? -1 : 0) : []
@@ -354,58 +319,6 @@ function mostRecent(uuid) {
     }
     return mostRecent
 }
-function parse(result) {
-    if (!result) return
-    const { url, html } = result
-    const uuid = uuidv5(url, uuidv5.URL)
-    hovering.value[uuid] = false
-    editing.value[uuid] = false
-    const $ = cheerio.load(html)
-    const $searchResults = $('li.cl-search-result')
-
-    if (!data.value[uuid]) data.value[uuid] = {
-        url,
-        uuid,
-        listings: {}
-    }
-    data.value[uuid].checked = Date.now()
-
-    $searchResults.each((_index, element) => {
-        const pid = $(element).attr('data-pid')
-        const href = $(element).find('.posting-title').attr('href')
-        const title = $(element).find('.cl-app-anchor .label').text()
-        const meta = $(element).find('.meta').text().split($(element).find('.separator').text())
-
-        if (!pid || !title) return
-        if (!data.value[uuid].listings[pid]) {
-            data.value[uuid].listings[pid] = {
-                pid,
-                imageUrls: []
-            }
-            playQueue()
-        }
-
-        $(element).find('.gallery-inner img').each((_index, element) => {
-            const imageUrl = $(element).attr('src')
-            if (imageUrl) {
-                data.value[uuid].listings[pid].imageUrls = Array.from(new Set([...data.value[uuid].listings[pid].imageUrls, imageUrl]))
-            }
-        })
-        data.value[uuid].listings[pid].href = href
-        data.value[uuid].listings[pid].title = title
-        data.value[uuid].listings[pid].meta = meta
-        data.value[uuid].listings[pid].time = estimateTimestampFromRelativeTime(data.value[uuid].listings[pid].meta[0])
-    })
-    if (interval.value) clearInterval(interval.value)
-    interval.value = setInterval(() => {
-        if (data.value && Object.keys(data.value).length) {
-            Object.values(data.value).forEach(listing => {
-                checked.value[listing.uuid] = prettyMilliseconds(Date.now() - data.value[listing.uuid].checked, { secondsDecimalDigits: 0 })
-            })
-
-        }
-    }, 1000)
-}
 onMounted(() => {
     if (/#link/.test(window.location.hash) && !store.isLinkedDevice) {
         dialogs.value.linked = true
@@ -416,11 +329,20 @@ onMounted(() => {
             console.log(response)
         })
     }
-    sio.on('update', (result) => parse(result))
+    sio.on('update', (payload) => {
+        const { diff } = payload
+        data.value[diff.uuid] = {
+            listings: {
+                ...data.value[diff.uuid].listings,
+                ...diff.listings
+            }
+        }
+    })
     if (!store.isLinkedDevice) {
         store.clSearches.forEach(search => {
-            sio.emit('get', search.url, (result) => {
-                parse(result)
+            sio.emit('get', search.url, (payload) => {
+                const { json } = payload
+                data.value[json.uuid] = json
             })
         })
     }
