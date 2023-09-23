@@ -342,6 +342,7 @@ onMounted(() => {
     if (!store.isLinkedDevice) {
         store.clSearches.forEach(search => {
             sio.emit('get', search.url, (payload) => {
+                if (!payload) return
                 const { json } = payload
                 data.value[json.uuid] = json
             })
