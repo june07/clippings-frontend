@@ -255,7 +255,8 @@ function linkedDeviceHandler() {
 function newSearchHandler() {
     store.clSearches.push({ name: newName.value || new Date().toLocaleString(), url: newUrl.value, uuid: uuidv5(newUrl.value, uuidv5.URL), tts: true })
     sio.emit('get', newUrl.value, (payload) => {
-        data.value[json.uuid] = payload.json
+        const { json } = payload
+        data.value[json.uuid] = json
     })
     dialogs.value.add = false
 }
