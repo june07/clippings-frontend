@@ -356,7 +356,7 @@ async function playBell() {
         audioEl.src = '/mixkit-kids-cartoon-close-bells-2256.wav'
         audioEl.play()
         audioEl.onended = async event => {
-            resolve(true)
+            setTimeout(() => resolve(true), 500)
         }
     })
 }
