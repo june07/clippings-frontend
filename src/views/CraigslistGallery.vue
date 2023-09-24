@@ -353,7 +353,7 @@ onMounted(() => {
 async function playBell() {
     await new Promise(resolve => {
         const audioEl = document.getElementById('sound')
-        audioEl.src = '/mixkit-kids-cartoon-close-bells-2256.wav'
+        audioEl.src = '/mixkit-software-interface-start-2574.wav'
         audioEl.play()
         audioEl.onended = async event => {
             setTimeout(() => resolve(true), 500)
