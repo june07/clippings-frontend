@@ -27,16 +27,16 @@
                     <div class="text-no-wrap" style="cursor: pointer" v-if="!editing[search.uuid]" @click="editing[search.uuid] = true">{{ search.name }}</div>
                     <v-text-field variant="outlined" density="compact" hide-details v-model="newSearchName" v-else @change="setSearchNameModel(search.uuid)" placeholder="Search Name" @mouseleave="editing[search.uuid] = false" />
                     <a :href="search.url" target="_blank" rel="noopener" class="ml-2">{{ smAndDown ? 'cl' : 'craigslist' }}</a>
-                    <div v-if="data[search.uuid]?.checked && !smAndDown" class="ml-8 text-no-trunc">last checked {{ checked[search.uuid] }} ago</div>
-                    <div v-else class="ml-4 text-no-wrap">{{ checked[search.uuid] }}</div>
+                    <div v-if="data[search.uuid]?.updatedAt && !smAndDown" class="ml-8 text-no-trunc">last update {{ data[search.uuid].updatedAt }}</div>
+                    <div v-else-if="data[search.uuid]?.updatedAt" class="ml-4 text-no-wrap">{{ data[search.uuid].updatedAt }}</div>
                     <v-spacer />
                 </v-col>
                 <v-spacer />
                 <v-btn variant="text" class="text-body-2" :icon="getSearchTTS(search.uuid) ? 'volume_up' : 'volume_off'" @click="toggleSearchTTS(search.uuid)" :density="smAndDown ? 'compact' : undefined" />
                 <v-btn v-if="searchIndex !== 0" variant="text" class="text-body-2" icon="arrow_upward" @click="sort('up', search.uuid)" :density="smAndDown ? 'compact' : undefined" />
                 <v-btn v-if="searchIndex !== store.clSearches.length - 1" variant="text" class="text-body-2" icon="arrow_downward" @click="sort('down', search.uuid)" :density="smAndDown ? 'compact' : undefined" />
-                <v-btn variant="text" class="text-body-2" prepend-icon="delete" @click="deleteHandler(search.uuid)" :density="smAndDown ? 'compact' : undefined" :icon="smAndDown ? 'delete' : undefined">
-                    <template v-slot:default v-if="!smAndDown">delete <span class="ml-2 font-italic font-weight-medium">{{ search.name }}</span></template>
+                <v-btn variant="text" class="text-body-2" prepend-icon="delete" @click="deleteHandler(search.uuid)" :density="smAndDown ? 'compact' : undefined" :icon="smAndDown ? 'delete' : undefined" :rounded="!smAndDown">
+                    <template v-slot:default v-if="!smAndDown">delete</template>
                 </v-btn>
             </v-row>
             <v-slide-group class="pa-4" selected-class="bg-success" show-arrows="always" :class="hovering[search.uuid] ? '' : 'hide-arrows'" @mouseenter="hovering[search.uuid] = true" @mouseleave="hovering[search.uuid] = false">
@@ -71,7 +71,7 @@
                 <v-card-title class="font-weight-light text-center">Add a new search</v-card-title>
                 <v-card-subtitle class="font-weight-light text-center">Go ahead, do it!</v-card-subtitle>
                 <v-card-text>
-                    <v-text-field density="compact" variant="solo" rounded="lg" v-model="newName" persistent-hint hint="name" placeholder="Any name you want" class="mb-4" />
+                    <v-text-field density="compact" variant="solo" rounded="lg" v-model="newName" persistent-hint hint="name" placeholder="Any name you want (defaults to the date)" class="mb-4" />
                     <v-text-field density="compact" variant="solo" rounded="lg" v-model="newUrl" persistent-hint hint="url" placeholder="Any Craigslist search URL" :rules="rules.url" />
                 </v-card-text>
                 <v-card-actions class="justify-center">
@@ -134,18 +134,20 @@
 }
 </style>
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, inject } from 'vue'
 import { useAppStore } from '@/store/app'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 import io from 'socket.io-client'
-import * as cheerio from 'cheerio'
-import prettyMilliseconds from 'pretty-ms'
 import { VSlideGroup } from 'vuetify/components/VSlideGroup'
 import { mapSeries } from 'async'
 import draggable from 'vuedraggable'
 import { watch } from 'vue'
 import { v5 as uuidv5 } from 'uuid'
 
+import Tts from '@/components/Tts.vue'
+
+const emit = defineEmits(['playQueue'])
+const textToSpeech = inject('textToSpeech')
 const { MODE } = import.meta.env
 const { smAndDown } = useDisplay()
 const rules = {
@@ -182,7 +184,7 @@ const unplayedInQueue = computed(() => {
 })
 const maxListingsPerSearch = smAndDown.value ? 7 : 21
 const data = ref({})
-const sio = io(VITE_API_SERVER + '/cl', {
+const sio = io(VITE_API_SERVER + '/', {
     transports: ['websocket'],
     path: '/ws',
     query: {}
@@ -307,7 +309,7 @@ function mostRecent(uuid) {
             if (!store.isLinkedDevice && !store.audioQueue[pid]) {
                 store.audioQueue[pid] = { pid, href, title, createdAt: Date.now() }
                 console.log(pid, title)
-                let ttsString = `${MODE === 'production' ? '' : 'development'}... ${title}`
+                let ttsString = `${MODE === 'production' ? '' : 'dev'}... ${title}`
                 if (lastTTSSearch.value !== uuid) {
                     lastTTSSearch.value = uuid
                     ttsString = `search name: ${(store.clSearches.find(search => search.uuid === uuid)).name}, ${ttsString}`
@@ -333,6 +335,7 @@ onMounted(() => {
     sio.on('update', (payload) => {
         const { diff } = payload
         data.value[diff.uuid] = {
+            updatedAt: new Date(),
             listings: data.value[diff.uuid]?.listings ? {
                 ...data.value[diff.uuid].listings,
                 ...diff.listings
@@ -348,7 +351,14 @@ onMounted(() => {
             })
         })
     }
-    setTimeout(() => isMounted.value = true, 11000)
+    setTimeout(() => {
+        isMounted.value = true, 11000
+        if (MODE !== 'production') {
+            const testPid = '0000000'
+            store.audioQueue[testPid] = {}
+            //textToSpeechSystem(testPid, 'this is a test')
+        }
+    })
 })
 async function playBell() {
     await new Promise(resolve => {
@@ -356,7 +366,7 @@ async function playBell() {
         audioEl.src = '/mixkit-software-interface-start-2574.wav'
         audioEl.play()
         audioEl.onended = async event => {
-            setTimeout(() => resolve(true), 500)
+            setTimeout(() => resolve(true))
         }
     })
 }
@@ -376,6 +386,7 @@ async function play(queued) {
         audioEl.play()
     })
 }
+/*
 function textToSpeech(pid, text) {
     if (!store.audioEnabled) return
     if (!store.elevenlabs.XI_API_KEY || !store.elevenlabs.voiceId || !store.elevenlabs.voiceModel) {
@@ -386,14 +397,12 @@ function textToSpeech(pid, text) {
 }
 function textToSpeechSystem(pid, text) {
     if (store.audioQueue[pid].played) return
-    const utterance = new SpeechSynthesisUtterance(`
-<speak version="1.1" xmlns="http://www.w3.org/2001/10/synthesis"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.w3.org/2001/10/synthesis
-        http://www.w3.org/TR/speech-synthesis11/synthesis.xsd"
-    xml:lang="en-US">
-    .<break time="3s"/>${text}</speak>`)
-    utterance.onstart = _event => playBell()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.onstart = async _event => {
+        window.speechSynthesis.pause()
+        await playBell()
+        window.speechSynthesis.resume()
+    }
     window.speechSynthesis.speak(utterance)
     store.audioQueue[pid].played = 'system'
 }
@@ -472,6 +481,7 @@ function textToSpeechElevenLabs(pid, text, retry = 0) {
         }
     }
 }
+*/
 function toBase64(blob, callback) {
     const reader = new FileReader()
     reader.onload = function () {
@@ -492,6 +502,8 @@ function base64ToDataUrl(base64String) {
 
     return dataUrl
 }
+const playQueue = queue => emit('playQueue', queue)
+/*
 async function playQueue(queue) {
     if (debounces.value.playQueue) clearTimeout(debounces.value.playQueue)
     debounces.value.playQueue = setTimeout(async () => {
@@ -514,6 +526,7 @@ async function playQueue(queue) {
         })
     }, 3000)
 }
+*/
 onBeforeUnmount(() => clearInterval(interval.value))
 watch(store.audioQueue, async queue => {
     if (debounces.value.audioQueue) clearTimeout(debounces.value.audioQueue)
