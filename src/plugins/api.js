@@ -67,7 +67,8 @@ const apiService = () => {
             } catch (error) {
                 console.error(error)
             }
-        }
+        },
+        info: () => request({ url: `${API_SERVER}/v1/info` }),
     }
 }
 

@@ -70,7 +70,7 @@
                 <v-card-title class="font-weight-light text-center">Link a device</v-card-title>
                 <v-card-subtitle class="font-weight-light text-center">Enter the code from the device you want to link</v-card-subtitle>
                 <v-card-text>
-                    <p>On your device, go to <span class="font-weight-bold">craiglist.june07.com/#link</span> and enter this code:</p>
+                    <p>On your device, go to <span class="font-weight-bold">jc.june07.com/#link</span> and enter this code:</p>
                     <p class="text-h4 text-center" :class="linkSetup ? 'text-green' : ''">{{ store.linkCode }}</p>
                 </v-card-text>
             </v-card>
@@ -106,17 +106,19 @@
 }
 </style>
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue'
 import { useAppStore } from '@/store/app'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 import io from 'socket.io-client'
 import { VSlideGroup } from 'vuetify/components/VSlideGroup'
 import { watch } from 'vue'
 import { v5 as uuidv5 } from 'uuid'
-import prettyMilliseconds from 'pretty-ms';
+import prettyMilliseconds from 'pretty-ms'
+import cookie from 'cookie'
 
 import Tts from '@/components/Tts.vue'
 
+const { $api } = getCurrentInstance().appContext.config.globalProperties
 const tts = ref(null)
 const mostRecent = ref({})
 const interval = ref()
@@ -151,9 +153,7 @@ const store = useAppStore()
 const maxListingsPerSearch = smAndDown.value ? 7 : 21
 const data = ref({})
 const sio = io(VITE_API_SERVER + '/', {
-    transports: ['websocket'],
-    path: '/ws',
-    query: {}
+    transports: ['websocket']
 })
     .on('audioQueue', queue => {
         if (store.isLinkedDevice) {
@@ -270,6 +270,17 @@ function updateMostRecent(uuid) {
     mostRecent.value[uuid] = update
 }
 onMounted(() => {
+    if (!store.sessionId) {
+        (async () => {
+            await $api.info()
+            store.sessionId = cookie.parse(document.cookie)?.['connect.sid']?.match(/s:([^\.]*)/)[1]
+            sio.auth = { sessionId: store.sessionId }
+            sio.connect()
+        })()
+    } else {
+        sio.auth = { sessionId: store.sessionId }
+        sio.connect()
+    }
     if (/#link/.test(window.location.hash) && !store.isLinkedDevice) {
         dialogs.value.linked = true
     }
