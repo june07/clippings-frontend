@@ -85,12 +85,10 @@ function textToSpeech(pid, text) {
 function textToSpeechSystem(pid, text) {
     if (store.audioQueue[pid].played) return
     const utterance = new SpeechSynthesisUtterance(text)
+    store.audioQueue[pid].played = 'system'
     utterance.onstart = async _event => {
         await playBell()
         window.speechSynthesis.resume()
-    }
-    utterance.onend = async _event => {
-        store.audioQueue[pid].played = 'system'
     }
     window.speechSynthesis.speak(utterance)
     window.speechSynthesis.pause()
