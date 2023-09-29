@@ -3,17 +3,19 @@
         <div class="d-flex align-center justify-center mb-4" :class="smAndDown ? 'flex-column' : ''">
             <Tts ref="tts" />
             <v-btn variant="text" rounded @click="dialogs.add = true" class="text-body-2" prepend-icon="add" v-if="!store.isLinkedDevice">new search</v-btn>
+            <v-btn variant="text" rounded @click="searchesHandler" class="text-body-2" prepend-icon="list">trending searches</v-btn>
             <v-btn variant="text" rounded @click="linkDeviceHandler" class="text-body-2" prepend-icon="link" v-if="!store.isLinkedDevice && !smAndDown">link device</v-btn>
             <v-chip v-else-if="store.linkCode" class="mx-4" :class="smAndDown ? 'mt-2' : ''">linked to {{ store.linkCode }}</v-chip>
             <v-btn variant="text" rounded @click="unlinkDeviceHandler" class="text-body-2" prepend-icon="link_off" v-if="store.isLinkedDevice && !smAndDown">unlink device</v-btn>
         </div>
+        <!-- searches start -->
         <v-sheet width="100%" v-for="(search, searchIndex) of store.clSearches">
             <v-row class="d-flex align-center">
                 <v-col :cols="3" class="d-flex align-center text-body-2">
                     <div class="text-no-wrap" style="cursor: pointer" v-if="!editing[search.uuid]" @click="editing[search.uuid] = true">{{ search.name }}</div>
                     <v-text-field variant="outlined" density="compact" hide-details v-model="newSearchName" v-else @change="setSearchNameModel(search.uuid)" placeholder="Search Name" @mouseleave="editing[search.uuid] = false" />
                     <a :href="search.url" target="_blank" rel="noopener" class="ml-2">{{ smAndDown ? 'cl' : 'craigslist' }}</a>
-                    <div v-if="lastChecked[search.uuid] && !smAndDown" class="ml-8 text-no-trunc">updated {{ lastChecked[search.uuid].timeAgo }} ago</div>
+                    <div v-if="lastChecked[search.uuid] && !smAndDown" class="ml-8 text-no-trunc text-no-wrap">updated {{ lastChecked[search.uuid].timeAgo }} ago</div>
                     <div v-else-if="data[search.uuid]?.updatedAt" class="ml-4 text-no-wrap">{{ data[search.uuid].updatedAt }}</div>
                     <v-spacer />
                 </v-col>
@@ -28,10 +30,12 @@
             <v-slide-group class="pa-4" selected-class="bg-success" show-arrows="always" :class="hovering[search.uuid] ? '' : 'hide-arrows'" @mouseenter="hovering[search.uuid] = true" @mouseleave="hovering[search.uuid] = false">
                 <v-slide-group-item v-for="(listing, index) of mostRecent[search.uuid]" :key="`${listing.pid} ${search.uuid}`" v-slot="{ isSelected, toggle, selectedClass }">
                     <div class="d-flex flex-column mx-1" :style="smAndDown ? 'width: 100px' : 'width: 250px'">
-                        <v-icon class="new-icon" icon="newspaper" v-if="listing.time > Math.floor((Date.now() - (60000 * 10)) / 1000)" color="yellow" />
                         <v-card :color="listing.imageUrls?.length ? 'yellow-lighten-1' : 'grey-lighten-3'" rounded="xl">
-                            <v-carousel transition="fade" :height="smAndDown ? 100 : 250" hide-delimiter-background :show-arrows="hovering[`${listing.pid} ${search.uuid}`] !== undefined && hovering[`${listing.pid} ${search.uuid}`]" @mouseenter="hovering[`${listing.pid} ${search.uuid}`] = true" @mouseleave="hovering[`${listing.pid} ${search.uuid}`] = false">
-                                <span style="position: absolute; z-index: 1" class="text-caption ml-4 text-white">{{ listing.pid }}</span>
+                            <v-carousel v-show="!showComments[listing.pid]" transition="fade" :height="smAndDown ? 100 : 250" hide-delimiter-background :show-arrows="hovering[`${listing.pid} ${search.uuid}`] !== undefined && hovering[`${listing.pid} ${search.uuid}`]" @mouseenter="hovering[`${listing.pid} ${search.uuid}`] = true" @mouseleave="hovering[`${listing.pid} ${search.uuid}`] = false">
+                                <div style="position: absolute; z-index: 1" class="d-flex align-center">
+                                    <span class="text-caption ml-4 text-white">{{ listing.pid }}</span>
+                                    <v-btn size="x-small" variant="text" icon="comment" color="white" @click="showComments[listing.pid] = true" />
+                                </div>
                                 <v-carousel-item v-if="listing.imageUrls?.length" v-for="imageUrl of listing.imageUrls" :key="imageUrl">
                                     <v-img :height="smAndDown ? 100 : 250" :width="smAndDown ? 100 : 250" :src="imageUrl" cover style="border-radius: 12px">
                                         <template v-slot:placeholder>
@@ -48,6 +52,8 @@
                         </v-card>
                         <a class="text-body-2 text-truncate" :href="listing.href" target="_blank">{{ listing.title }}</a>
                         <div class="text-caption text-truncate">{{ listing.meta.join(' ') }}</div>
+                        <v-btn size="x-small" v-if="showComments[listing.pid]" variant="text" prepend-icon="comment" @click="showComments[listing.pid] = false">close</v-btn>
+                        <Giscus class="giscus" v-if="showComments[listing.pid]" repo="june07/jc-comments" repo-id="R_kgDOKZ-3jA" category="Announcements" category-id="DIC_kwDOKZ-3jM4CZvZb" mapping="specific" :term="listing.pid" strict="0" reactions-enabled="1" emit-metadata="0" input-position="bottom" theme="preferred_color_scheme" lang="en" />
                     </div>
                 </v-slide-group-item>
             </v-slide-group>
@@ -61,7 +67,7 @@
                     <v-text-field density="compact" variant="solo" rounded="lg" v-model="newUrl" persistent-hint hint="url" placeholder="Any Craigslist search URL" :rules="rules.url" />
                 </v-card-text>
                 <v-card-actions class="justify-center">
-                    <v-btn prepend-icon="add" variant="tonal" @click="newSearchHandler">add</v-btn>
+                    <v-btn prepend-icon="add" variant="tonal" @click="() => newSearchHandler()">add</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -90,6 +96,25 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
+        <v-dialog transition="dialog-bottom-transition" width="auto" :min-width="smAndDown ? '100%' : 700" v-model="dialogs.searches">
+            <v-card rounded="xl" class="pa-4" style="opacity: 0.96">
+                <v-card-title class="font-weight-light text-center">Trending searches</v-card-title>
+                <v-card-subtitle class="font-weight-light text-center">Watch the searches that other users are watching.</v-card-subtitle>
+                <v-card-text>
+                    <v-list>
+                        <v-list-item v-for="(search, index) of searches" :key="search.url">
+                            <div class="d-flex text-body-2 justify-center">
+                                #<span class="font-weight-medium mr-4">{{ index + 1 }}</span>{{ search.metadata.title }}
+                            </div>
+                            <template v-slot:append="{ item }">
+                                <v-btn variant="text" size="small" prepend-icon="add" @click="newSearchHandler(item.name, item.url)" :disabled="store.clSearches.find(s => s.uuid === search.uuid) ? true : false">add</v-btn>
+                            </template>
+                        </v-list-item>
+                    </v-list>
+                    <v-btn class="d-flex mx-auto mt-8" @click="dialogs.searches = false">close</v-btn>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 <style scoped>
@@ -115,6 +140,7 @@ import { watch } from 'vue'
 import { v5 as uuidv5 } from 'uuid'
 import prettyMilliseconds from 'pretty-ms'
 import cookie from 'cookie'
+import Giscus from '@giscus/vue'
 
 import Tts from '@/components/Tts.vue'
 
@@ -146,12 +172,15 @@ const dialogs = ref({
     add: false,
     link: false,
     linked: false,
-    tts: false
+    tts: false,
+    searches: false
 })
+const searches = ref([])
 const lastTTSSearch = ref()
 const store = useAppStore()
 const maxListingsPerSearch = smAndDown.value ? 7 : 21
 const data = ref({})
+const showComments = ref({})
 const sio = io(VITE_API_SERVER + '/', {
     transports: ['websocket']
 })
@@ -199,6 +228,12 @@ function sort(direction, url) {
         store.clSearches.splice(direction === 'up' ? index - 1 : index, 0, search)
     }
 }
+function searchesHandler() {
+    dialogs.value.searches = true
+    sio.emit('searchesList', list => {
+        searches.value = list.map(item => JSON.parse(item))
+    })
+}
 function unlinkDeviceHandler() {
     sio.emit('unlink', store.linkCode, response => {
         store.isLinkedDevice = false
@@ -223,11 +258,12 @@ function linkedDeviceHandler() {
         }
     })
 }
-function newSearchHandler() {
-    store.clSearches.push({ name: newName.value || new Date().toLocaleString(), url: newUrl.value, uuid: uuidv5(newUrl.value, uuidv5.URL), tts: true })
+function newSearchHandler(name, url) {
+    store.clSearches.push({ name: name || newName.value || new Date().toLocaleString(), url: url || newUrl.value, uuid: uuidv5(newUrl.value, uuidv5.URL), tts: true })
     sio.emit('get', newUrl.value, (payload) => {
         const { json } = payload
         data.value[json.uuid] = json
+        showComments.value[json.uuid] = false
     })
     dialogs.value.add = false
 }
@@ -306,6 +342,7 @@ onMounted(() => {
             timestamp: now,
             timeAgo: timeAgo(now)
         }
+        showComments.value[diff.uuid] = false
     })
     if (!store.isLinkedDevice) {
         store.clSearches.forEach(search => {
