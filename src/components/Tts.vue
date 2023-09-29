@@ -39,7 +39,7 @@ import { mapSeries } from 'async'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 
 const unplayedInQueue = computed(() => {
-    return store.audioQueue && Object.values(store.audioQueue).length ? Object.values(store.audioQueue).find(q => !q.played && q.base64) : false
+    return store.audioQueue && Object.values(store.audioQueue).length ? Object.values(store.audioQueue).find(q => !q.played) : false
 })
 const dialogs = ref({
     tts: false
