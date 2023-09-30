@@ -34,7 +34,14 @@
                             <v-carousel v-show="!showComments[listing.pid]" transition="fade" :height="smAndDown ? 100 : 250" hide-delimiter-background :show-arrows="hovering[`${listing.pid} ${search.uuid}`] !== undefined && hovering[`${listing.pid} ${search.uuid}`]" @mouseenter="hovering[`${listing.pid} ${search.uuid}`] = true" @mouseleave="hovering[`${listing.pid} ${search.uuid}`] = false">
                                 <div style="position: absolute; z-index: 1" class="d-flex align-center">
                                     <span class="text-caption ml-4 text-white">{{ listing.pid }}</span>
-                                    <v-btn size="x-small" variant="text" icon="comment" color="white" @click="showComments[listing.pid] = true" />
+                                    <v-btn v-if="!commentsCount[listing.pid]" size="small" density="compact" variant="text" icon="comment" color="white" @click="showComments[listing.pid] = true" />
+                                    <v-badge v-else location="bottom" color="rgba(255, 255, 255, 0.7)" offset-y="-12">
+                                        <template v-slot:badge>
+                                            <span class="text-caption font-weight-bold">{{ commentsCount[listing.pid] }}</span>
+                                        </template>
+                                        <v-btn size="small" density="compact" variant="text" icon="comment" color="white" @click="showComments[listing.pid] = true" />
+                                    </v-badge>
+                                    <v-btn size="small" density="compact" variant="text" icon="unarchive" color="white" @click="archiveHandler(listing.href)" />
                                 </div>
                                 <v-carousel-item v-if="listing.imageUrls?.length" v-for="imageUrl of listing.imageUrls" :key="imageUrl">
                                     <v-img :height="smAndDown ? 100 : 250" :width="smAndDown ? 100 : 250" :src="imageUrl" cover style="border-radius: 12px">
@@ -53,7 +60,7 @@
                         <a class="text-body-2 text-truncate" :href="listing.href" target="_blank">{{ listing.title }}</a>
                         <div class="text-caption text-truncate">{{ listing.meta.join(' ') }}</div>
                         <v-btn size="x-small" v-if="showComments[listing.pid]" variant="text" prepend-icon="comment" @click="showComments[listing.pid] = false">close</v-btn>
-                        <Giscus class="giscus" v-if="showComments[listing.pid]" repo="june07/jc-comments" repo-id="R_kgDOKZ-3jA" category="Announcements" category-id="DIC_kwDOKZ-3jM4CZvZb" mapping="specific" :term="listing.pid" strict="0" reactions-enabled="1" emit-metadata="0" input-position="bottom" theme="preferred_color_scheme" lang="en" />
+                        <Giscus class="giscus" v-if="showComments[listing.pid]" repo="june07/jc-comments" repo-id="R_kgDOKZ-3jA" category="Announcements" category-id="DIC_kwDOKZ-3jM4CZvZb" mapping="specific" :term="listing.pid" strict="0" reactions-enabled="1" emit-metadata="1" input-position="bottom" theme="preferred_color_scheme" lang="en" />
                     </div>
                 </v-slide-group-item>
             </v-slide-group>
@@ -106,8 +113,8 @@
                             <div class="d-flex text-body-2 justify-center">
                                 #<span class="font-weight-medium mr-4">{{ index + 1 }}</span>{{ search.metadata.title }}
                             </div>
-                            <template v-slot:append="{ item }">
-                                <v-btn variant="text" size="small" prepend-icon="add" @click="newSearchHandler(item.name, item.url)" :disabled="store.clSearches.find(s => s.uuid === search.uuid) ? true : false">add</v-btn>
+                            <template v-slot:append>
+                                <v-btn variant="text" size="small" prepend-icon="add" @click="newSearchHandler(search.metadata.title, search.url)" :disabled="store.clSearches.find(s => s.uuid === search.uuid) ? true : false">add</v-btn>
                             </template>
                         </v-list-item>
                     </v-list>
@@ -181,6 +188,7 @@ const store = useAppStore()
 const maxListingsPerSearch = smAndDown.value ? 7 : 21
 const data = ref({})
 const showComments = ref({})
+const commentsCount = ref({})
 const sio = io(VITE_API_SERVER + '/', {
     transports: ['websocket']
 })
@@ -228,6 +236,9 @@ function sort(direction, url) {
         store.clSearches.splice(direction === 'up' ? index - 1 : index, 0, search)
     }
 }
+function archiveHandler(url) {
+    sio.emit('archive', url)
+}
 function searchesHandler() {
     dialogs.value.searches = true
     sio.emit('searchesList', list => {
@@ -258,14 +269,19 @@ function linkedDeviceHandler() {
         }
     })
 }
-function newSearchHandler(name, url) {
-    store.clSearches.push({ name: name || newName.value || new Date().toLocaleString(), url: url || newUrl.value, uuid: uuidv5(newUrl.value, uuidv5.URL), tts: true })
-    sio.emit('get', newUrl.value, (payload) => {
+function newSearchHandler(name = newName.value || new Date().toLocaleString(), url = newUrl.value) {
+    store.clSearches.push({
+        name,
+        url,
+        uuid: uuidv5(url, uuidv5.URL),
+        tts: true
+    })
+    sio.emit('get', url, (payload) => {
         const { json } = payload
         data.value[json.uuid] = json
         showComments.value[json.uuid] = false
     })
-    dialogs.value.add = false
+    dialogs.value.searches = false
 }
 function deleteHandler(uuid) {
     const index = store.clSearches.findIndex(search => search.uuid === uuid)
@@ -366,6 +382,25 @@ onMounted(() => {
             .filter(key => lastChecked.value[key]?.timestamp)
             .map(key => lastChecked.value[key].timeAgo = timeAgo(lastChecked.value[key].timestamp))
     }, 1000)
+
+    function handleMessage(event) {
+        if (event.origin !== 'https://giscus.app') return
+        if (!(typeof event.data === 'object' && event.data.giscus)) return
+
+        const giscusData = event.data.giscus
+
+        if (giscusData?.discussion) {
+            sio.emit('updateDiscussion', giscusData.discussion)
+        }
+        // Do whatever you want with it, e.g. `console.log(giscusData)`.
+        // You'll need to make sure that `giscusData` contains the message you're
+        // expecting, e.g. by using `if ('discussion' in giscusData)`.
+    }
+
+    window.addEventListener('message', handleMessage)
+    // Some time later...
+    //window.removeEventListener('message', handleMessage)
+
 })
 onBeforeUnmount(() => {
     clearInterval(interval.value)
