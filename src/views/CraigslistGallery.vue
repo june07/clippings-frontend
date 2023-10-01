@@ -34,10 +34,10 @@
                             <v-carousel v-show="!showComments[listing.pid]" transition="fade" :height="smAndDown ? 100 : 250" hide-delimiter-background :show-arrows="hovering[`${listing.pid} ${search.uuid}`] !== undefined && hovering[`${listing.pid} ${search.uuid}`]" @mouseenter="hovering[`${listing.pid} ${search.uuid}`] = true" @mouseleave="hovering[`${listing.pid} ${search.uuid}`] = false">
                                 <div style="position: absolute; z-index: 1" class="d-flex align-center">
                                     <span class="text-caption ml-4 text-white">{{ listing.pid }}</span>
-                                    <v-btn v-if="!commentsCount[listing.pid]" size="small" density="compact" variant="text" icon="comment" color="white" @click="showComments[listing.pid] = true" />
-                                    <v-badge v-else location="bottom" color="rgba(255, 255, 255, 0.7)" offset-y="-12">
+                                    <v-btn v-if="!listing.commentData?.comments?.totalCount" size="small" density="compact" variant="text" icon="comment" color="white" @click="showComments[listing.pid] = true" />
+                                    <v-badge v-else location="bottom" color="rgba(255, 255, 255, 0.7)" offset-y="-12" @click="showComments[listing.pid] = true" style="cursor: pointer">
                                         <template v-slot:badge>
-                                            <span class="text-caption font-weight-bold">{{ commentsCount[listing.pid] }}</span>
+                                            <span class="text-caption font-weight-bold">{{ listing.commentData.comments.totalCount }}</span>
                                         </template>
                                         <v-btn size="small" density="compact" variant="text" icon="comment" color="white" @click="showComments[listing.pid] = true" />
                                     </v-badge>
@@ -154,7 +154,12 @@ import Tts from '@/components/Tts.vue'
 const { $api } = getCurrentInstance().appContext.config.globalProperties
 const tts = ref(null)
 const mostRecent = ref({})
-const interval = ref()
+const intervals = ref({
+    default: undefined,
+})
+const timeouts = ref({
+    updateCommentData: undefined
+})
 const { MODE } = import.meta.env
 const { smAndDown } = useDisplay()
 const rules = {
@@ -188,7 +193,6 @@ const store = useAppStore()
 const maxListingsPerSearch = smAndDown.value ? 7 : 21
 const data = ref({})
 const showComments = ref({})
-const commentsCount = ref({})
 const sio = io(VITE_API_SERVER + '/', {
     transports: ['websocket']
 })
@@ -218,6 +222,16 @@ const sio = io(VITE_API_SERVER + '/', {
     })
     .on('linked', () => {
         dialogs.value.link = false
+    })
+    .on('updatedDiscussion', discussion => {
+        const { title: pid } = discussion
+        Object.values(data.value).map(search => {
+            Object.values(search.listings).map(listing => {
+                if (listing.pid === pid) {
+                    data.value[search.uuid].listings[listing.pid].commentData = discussion
+                }
+            })
+        })
     })
     .on('connect_error', (error) => {
         console.log('CALLBACK ERROR: ' + error)
@@ -348,10 +362,10 @@ onMounted(() => {
 
         data.value[diff.uuid] = {
             updatedAt: now,
-            listings: data.value[diff.uuid]?.listings ? {
+            listings: ref(data.value[diff.uuid]?.listings ? {
                 ...data.value[diff.uuid].listings,
                 ...diff.listings
-            } : diff.listings
+            } : diff.listings)
         }
         updateMostRecent(diff.uuid)
         lastChecked.value[diff.uuid] = {
@@ -377,7 +391,7 @@ onMounted(() => {
     setTimeout(() => {
         isMounted.value = true, 11000
     })
-    interval.value = setInterval(() => {
+    intervals.value.default = setInterval(() => {
         Object.keys(data.value)
             .filter(key => lastChecked.value[key]?.timestamp)
             .map(key => lastChecked.value[key].timeAgo = timeAgo(lastChecked.value[key].timestamp))
@@ -390,7 +404,8 @@ onMounted(() => {
         const giscusData = event.data.giscus
 
         if (giscusData?.discussion) {
-            sio.emit('updateDiscussion', giscusData.discussion)
+            if (timeouts.value.updateCommentData) clearTimeout(timeouts.value.updateCommentData)
+            timeouts.value.updateCommentData = setTimeout(() => sio.emit('updateDiscussion', giscusData.discussion), 500)
         }
         // Do whatever you want with it, e.g. `console.log(giscusData)`.
         // You'll need to make sure that `giscusData` contains the message you're
@@ -403,7 +418,7 @@ onMounted(() => {
 
 })
 onBeforeUnmount(() => {
-    clearInterval(interval.value)
+    clearInterval(intervals.value.default)
 })
 watch(store.audioQueue, async queue => {
     if (debounces.value.audioQueue) clearTimeout(debounces.value.audioQueue)
