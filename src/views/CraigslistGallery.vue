@@ -296,6 +296,7 @@ function newSearchHandler(name = newName.value || new Date().toLocaleString(), u
         showComments.value[json.uuid] = false
     })
     dialogs.value.searches = false
+    dialogs.value.add = false
 }
 function deleteHandler(uuid) {
     const index = store.clSearches.findIndex(search => search.uuid === uuid)
