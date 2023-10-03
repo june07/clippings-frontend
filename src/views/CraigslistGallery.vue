@@ -41,7 +41,8 @@
                                         </template>
                                         <v-btn size="small" density="compact" variant="text" icon="comment" color="white" @click="showComments[listing.pid] = true" />
                                     </v-badge>
-                                    <v-btn size="small" density="compact" variant="text" icon="unarchive" color="white" @click="archiveHandler(listing.href)" />
+                                    <v-btn v-if="!listing.gitUrl" size="small" density="compact" variant="text" icon="unarchive" color="white" @click="archiveHandler(listing.href)" :loading="loading.archive[listing.pid]" />
+                                    <v-btn v-else size="small" density="compact" variant="text" icon="link" color="white" :href="`https://june07.github.io/jc-archive/craigslist/${listing.pid}/index.htm`" target="_blank" />
                                 </div>
                                 <v-carousel-item v-if="listing.imageUrls?.length" v-for="imageUrl of listing.imageUrls" :key="imageUrl">
                                     <v-img :height="smAndDown ? 100 : 250" :width="smAndDown ? 100 : 250" :src="imageUrl" cover style="border-radius: 12px">
@@ -158,7 +159,8 @@ const intervals = ref({
     default: undefined,
 })
 const timeouts = ref({
-    updateCommentData: undefined
+    updateCommentData: undefined,
+    archiveLoading: {}
 })
 const { MODE } = import.meta.env
 const { smAndDown } = useDisplay()
@@ -172,6 +174,9 @@ const { VITE_API_SERVER } = import.meta.env
 const linkSetup = ref(false)
 const debounces = ref({
     audioQueue: undefined,
+})
+const loading = ref({
+    archive: {}
 })
 const lastChecked = ref({})
 const isMounted = ref(false)
@@ -251,7 +256,11 @@ function sort(direction, url) {
     }
 }
 function archiveHandler(url) {
+    const pid = url.match(/\/([^\/]*)\.html/)[1]
+    loading.value.archive[pid] = true
     sio.emit('archive', url)
+    if (timeouts.value.archiveLoading[pid]) clearInterval(timeouts.value.archiveLoading[pid])
+    timeouts.value.archiveLoading[pid] = setTimeout(() => loading.value.archive[pid] = false, 30000)
 }
 function searchesHandler() {
     dialogs.value.searches = true
@@ -358,22 +367,34 @@ onMounted(() => {
         })
     }
     sio.on('update', (payload) => {
-        const { diff } = payload
+        const { diff, archived } = payload
         const now = Date.now()
 
-        data.value[diff.uuid] = {
-            updatedAt: now,
-            listings: ref(data.value[diff.uuid]?.listings ? {
-                ...data.value[diff.uuid].listings,
-                ...diff.listings
-            } : diff.listings)
+        if (diff) {
+            data.value[diff.uuid] = {
+                updatedAt: now,
+                listings: ref(data.value[diff.uuid]?.listings ? {
+                    ...data.value[diff.uuid].listings,
+                    ...diff.listings
+                } : diff.listings)
+            }
+            updateMostRecent(diff.uuid)
+            lastChecked.value[diff.uuid] = {
+                timestamp: now,
+                timeAgo: timeAgo(now)
+            }
+            showComments.value[diff.uuid] = false
+        } else if (archived) {
+            const { pid, gitUrl } = archived
+
+            loading.value.archive[pid] = false
+            Object.values(data.value).map(search => {
+                const listingKV = Object.entries(search.listings).find(kv => kv[1].pid === pid)
+                if (listingKV) {
+                    data.value[search.uuid].listings[listingKV[0]].gitUrl = gitUrl
+                }
+            })
         }
-        updateMostRecent(diff.uuid)
-        lastChecked.value[diff.uuid] = {
-            timestamp: now,
-            timeAgo: timeAgo(now)
-        }
-        showComments.value[diff.uuid] = false
     })
     if (!store.isLinkedDevice) {
         store.clSearches.forEach(search => {
