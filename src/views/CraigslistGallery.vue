@@ -14,6 +14,7 @@
                 <v-col :cols="3" class="d-flex align-center text-body-2">
                     <div class="text-no-wrap" style="cursor: pointer" v-if="!editing[search.uuid]" @click="editing[search.uuid] = true">{{ search.name }}</div>
                     <v-text-field variant="outlined" density="compact" hide-details v-model="newSearchName" v-else @change="setSearchNameModel(search.uuid)" placeholder="Search Name" @mouseleave="editing[search.uuid] = false" />
+                    <v-btn v-if="MODE !== 'production'" variant="text" rounded @click="dialogs.debug = true" class="text-body-2" prepend-icon="bug_report">debug</v-btn>
                     <a :href="search.url" target="_blank" rel="noopener" class="ml-2">{{ smAndDown ? 'cl' : 'craigslist' }}</a>
                     <div v-if="lastChecked[search.uuid] && !smAndDown" class="ml-8 text-no-trunc text-no-wrap">updated {{ lastChecked[search.uuid].timeAgo }} ago</div>
                     <div v-else-if="data[search.uuid]?.updatedAt" class="ml-4 text-no-wrap">{{ data[search.uuid].updatedAt }}</div>
@@ -123,6 +124,9 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
+        <v-dialog transition="dialog-bottom-transition" width="-webkit-fill-available" :min-width="smAndDown ? '100%' : 700" v-model="dialogs.debug">
+            <v-img :src="debug.screenshot" />
+        </v-dialog>
     </v-container>
 </template>
 <style scoped>
@@ -178,6 +182,7 @@ const debounces = ref({
 const loading = ref({
     archive: {}
 })
+const debug = ref({})
 const lastChecked = ref({})
 const isMounted = ref(false)
 const hovering = ref({})
@@ -237,6 +242,14 @@ const sio = io(VITE_API_SERVER + '/', {
                 }
             })
         })
+    })
+    .on('screenshot', payload => {
+        const { buffer, uuid } = payload
+        const index = store.clSearches.findIndex(search => search.uuid === uuid)
+
+        if (index !== -1) {
+            debug.value.screenshot = URL.createObjectURL(new Blob([buffer], { type: 'image/png' }))
+        }
     })
     .on('connect_error', (error) => {
         console.log('CALLBACK ERROR: ' + error)
