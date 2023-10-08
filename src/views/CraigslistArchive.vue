@@ -4,7 +4,7 @@
             <v-card-title class="font-weight-light text-center">Archive an Ad</v-card-title>
             <v-card-subtitle class="font-weight-light text-center">Enter the link to the ad you want to archive</v-card-subtitle>
             <v-card-text>
-                <v-text-field density="compact" variant="solo" rounded="lg" v-model="textField" persistent-hint hint="Any Craigslist ad link" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url" />
+                <v-text-field density="compact" variant="solo" rounded="lg" v-model="store.textField" persistent-hint hint="Any Craigslist ad link" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url" />
                 <div v-if="archiveData[listingPid] || archiveWaitingToBeReady !== undefined" class="text-center">
                     <div class="text-h6 mb-4">Ad successfully archived.</div>
                     <v-row class="d-flex align-center">
@@ -26,7 +26,7 @@
                 </div>
             </v-card-text>
             <v-card-actions class="justify-center">
-                <v-btn prepend-icon="unarchive" variant="tonal" @click="archiveHandler(textField)" :loading="textField && loading.archive[listingPid]" :disabled="archiveData[listingPid] || archiveWaitingToBeReady !== undefined ? true : false">archive</v-btn>
+                <v-btn prepend-icon="unarchive" variant="tonal" @click="archiveHandler(store.textField)" :loading="store.textField && loading.archive[listingPid]" :disabled="archiveData[listingPid] || archiveWaitingToBeReady !== undefined ? true : false">archive</v-btn>
             </v-card-actions>
         </v-card>
     </v-container>
@@ -67,9 +67,8 @@ const isMounted = ref(false)
 const store = useAppStore()
 const data = ref({})
 const archiveWaitingToBeReady = ref()
-const textField = ref()
 const archiveData = ref({})
-const listingPid = computed(() => pidFromUrl(textField.value) || textField.value?.match(/\d{10}/)?.[0])
+const listingPid = computed(() => pidFromUrl(store.textField) || store.textField?.match(/\d{10}/)?.[0])
 const sio = io(VITE_API_SERVER + '/', {
     transports: ['websocket']
 })
@@ -103,13 +102,13 @@ function timeAgo(timestamp) {
 }
 const pidFromUrl = (url) => url && url.match(/\/([^\/]*)\.html/)?.[1]
 function archiveHandler() {
-    if (!listingPid.value || !/https:\/\/.*\.craigslist\.org\/.+/.test(textField.value)) return
+    if (!listingPid.value || !/https:\/\/.*\.craigslist\.org\/.+/.test(store.textField)) return
     loading.value.archive[listingPid.value] = true
-    sio.emit('archive', textField.value)
+    sio.emit('archive', store.textField)
     if (timeouts.value.archiveLoading[listingPid.value]) clearInterval(timeouts.value.archiveLoading[listingPid.value])
     timeouts.value.archiveLoading[listingPid.value] = setTimeout(() => loading.value.archive[listingPid.value] = false, 30000)
 }
-watch(textField, (newValue, oldValue) => {
+watch(() => store.textField, (newValue, oldValue) => {
     if (!newValue || newValue === oldValue || !newValue.match(/\d{10}/)?.[0]) return
     sio.emit('getArchive', listingPid.value, archive => {
         archiveData.value[listingPid.value] = JSON.parse(archive)
