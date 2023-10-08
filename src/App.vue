@@ -1,7 +1,7 @@
 <template>
     <v-app ref="craigslist" :class="{ 'blur': showCredits, 'mobile': smAndDown }">
         <v-main>
-            <craigslist-gallery />
+            <craigslist-archive />
         </v-main>
 
         <v-snackbar text :timeout="-1" v-model="notice" style="opacity: 0.9" @click="notice = !notice">
@@ -24,7 +24,7 @@ import { ref, getCurrentInstance } from 'vue'
 import { useAppStore } from '@/store/app'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 
-import CraigslistGallery from '@/views/CraigslistGallery.vue'
+import CraigslistArchive from '@/views/CraigslistArchive.vue'
 
 const { smAndDown } = useDisplay()
 const store = useAppStore()
