@@ -4,6 +4,7 @@
             <Tts ref="tts" />
             <v-btn variant="text" rounded @click="dialogs.add = true" class="text-body-2" prepend-icon="add" v-if="!store.isLinkedDevice">new search</v-btn>
             <v-btn variant="text" rounded @click="searchesHandler" class="text-body-2" prepend-icon="list">trending searches</v-btn>
+            <v-btn variant="text" rounded @click="dialogs.archive = true" class="text-body-2" prepend-icon="unarchive">archive listing</v-btn>
             <v-btn variant="text" rounded @click="linkDeviceHandler" class="text-body-2" prepend-icon="link" v-if="!store.isLinkedDevice && !smAndDown">link device</v-btn>
             <v-chip v-else-if="store.linkCode" class="mx-4" :class="smAndDown ? 'mt-2' : ''">linked to {{ store.linkCode }}</v-chip>
             <v-btn variant="text" rounded @click="unlinkDeviceHandler" class="text-body-2" prepend-icon="link_off" v-if="store.isLinkedDevice && !smAndDown">unlink device</v-btn>
@@ -42,8 +43,8 @@
                                         </template>
                                         <v-btn size="small" density="compact" variant="text" icon="comment" color="white" @click="showComments[listing.pid] = true" />
                                     </v-badge>
-                                    <v-btn v-if="!listing.gitUrl" size="small" density="compact" variant="text" icon="unarchive" color="white" @click="archiveHandler(listing.href)" :loading="loading.archive[listing.pid]" />
-                                    <v-btn v-else size="small" density="compact" variant="text" icon="link" color="white" :href="`https://june07.github.io/jc-archive/craigslist/${listing.pid}/index.htm`" target="_blank" />
+                                    <v-btn v-if="!listing.gitUrl" size="small" density="compact" variant="text" icon="unarchive" color="white" @click="archiveHandler(search.uuid, listing.href)" :loading="loading.archive[listing.pid]" />
+                                    <v-btn v-else size="small" density="compact" variant="text" icon="link" :color="archiveWaitingToBeReady[listing.pid] ? 'white' : 'green'" :href="`https://june07.github.io/jc-archive/craigslist/${listing.pid}/index.htm`" target="_blank" />
                                 </div>
                                 <v-carousel-item v-if="listing.imageUrls?.length" v-for="imageUrl of listing.imageUrls" :key="imageUrl">
                                     <v-img :height="smAndDown ? 100 : 250" :width="smAndDown ? 100 : 250" :src="imageUrl" cover style="border-radius: 12px">
@@ -54,7 +55,7 @@
                                         </template>
                                     </v-img>
                                 </v-carousel-item>
-                                <div class="d-flex justify-center align-center text-caption h-100" v-else>
+                                <div class="d-flex justify-center align-center text-caption h-100 no-image" v-else>
                                     No image
                                 </div>
                             </v-carousel>
@@ -127,9 +128,29 @@
         <v-dialog transition="dialog-bottom-transition" width="-webkit-fill-available" :min-width="smAndDown ? '100%' : 700" v-model="dialogs.debug">
             <v-img :src="debug.screenshot" />
         </v-dialog>
+        <v-dialog transition="dialog-bottom-transition" width="auto" :min-width="smAndDown ? '100%' : 700" v-model="dialogs.archive">
+            <v-card rounded="xl" class="pa-4" style="opacity: 0.96">
+                <v-card-title class="font-weight-light text-center">Archive an Ad</v-card-title>
+                <v-card-subtitle class="font-weight-light text-center">Enter the link to the ad you want to archive</v-card-subtitle>
+                <v-card-text>
+                    <v-text-field density="compact" variant="solo" rounded="lg" v-model="archiveUrl" persistent-hint hint="Any Craigslist ad URL" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url2" />
+                    <div v-if="archiveUrl && archiveWaitingToBeReady[pidFromUrl(archiveUrl)] !== undefined" class="text-center">
+                        <div class="text-h6">Ad successfully archived.</div>
+                        <v-btn variant="text" prepend-icon="link" :color="archiveWaitingToBeReady[pidFromUrl(archiveUrl)] ? 'white' : 'green'" :href="`https://june07.github.io/jc-archive/craigslist/${pidFromUrl(archiveUrl)}/index.htm`" target="_blank" class="text-caption">{{ `https://june07.github.io/jc-archive/craigslist/${pidFromUrl(archiveUrl)}/index.htm` }}</v-btn>
+                    </div>
+                </v-card-text>
+                <v-card-actions class="justify-center">
+                    <v-btn prepend-icon="unarchive" variant="tonal" @click="archiveHandler(undefined, archiveUrl)" :loading="archiveUrl && loading.archive[pidFromUrl(archiveUrl)]" :disabled="archiveUrl && archiveWaitingToBeReady[pidFromUrl(archiveUrl)] !== undefined">archive</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 <style scoped>
+.no-image {
+    transform: rotate('45deg');
+}
+
 .new-icon {
     position: absolute;
     z-index: 1;
@@ -161,6 +182,7 @@ const tts = ref(null)
 const mostRecent = ref({})
 const intervals = ref({
     default: undefined,
+    checkArchiveLinkActive: {}
 })
 const timeouts = ref({
     updateCommentData: undefined,
@@ -172,6 +194,10 @@ const rules = {
     url: [
         (v) => !!v || `url is required.`,
         v => v && /https:\/\/.*\.craigslist\.org\/search\/.+/.test(v) || `url is not valid or not supported`
+    ],
+    url2: [
+        (v) => !!v || `url is required.`,
+        v => v && /https:\/\/.*\.craigslist\.org\/.+/.test(v) || `url is not valid or not supported`
     ]
 }
 const { VITE_API_SERVER } = import.meta.env
@@ -195,7 +221,8 @@ const dialogs = ref({
     link: false,
     linked: false,
     tts: false,
-    searches: false
+    searches: false,
+    archive: false
 })
 const searches = ref([])
 const lastTTSSearch = ref()
@@ -203,6 +230,8 @@ const store = useAppStore()
 const maxListingsPerSearch = smAndDown.value ? 7 : 21
 const data = ref({})
 const showComments = ref({})
+const archiveWaitingToBeReady = ref({})
+const archiveUrl = ref()
 const sio = io(VITE_API_SERVER + '/', {
     transports: ['websocket']
 })
@@ -268,10 +297,11 @@ function sort(direction, url) {
         store.clSearches.splice(direction === 'up' ? index - 1 : index, 0, search)
     }
 }
-function archiveHandler(url) {
-    const pid = url.match(/\/([^\/]*)\.html/)[1]
+const pidFromUrl = (url) => url.match(/\/([^\/]*)\.html/)[1]
+function archiveHandler(searchUUID, listingURL) {
+    const pid = pidFromUrl(listingURL)
     loading.value.archive[pid] = true
-    sio.emit('archive', url)
+    sio.emit('archive', searchUUID, listingURL)
     if (timeouts.value.archiveLoading[pid]) clearInterval(timeouts.value.archiveLoading[pid])
     timeouts.value.archiveLoading[pid] = setTimeout(() => loading.value.archive[pid] = false, 30000)
 }
@@ -401,10 +431,25 @@ onMounted(() => {
             const { pid, gitUrl } = archived
 
             loading.value.archive[pid] = false
+            archiveWaitingToBeReady.value[pid] = true
             Object.values(data.value).map(search => {
                 const listingKV = Object.entries(search.listings).find(kv => kv[1].pid === pid)
                 if (listingKV) {
                     data.value[search.uuid].listings[listingKV[0]].gitUrl = gitUrl
+                    intervals.value.checkArchiveLinkActive[search.uuid] = setInterval(async () => {
+                        try {
+                            const response = await fetch(gitUrl)
+                            if (response.status == 200) {
+                                clearInterval(intervals.value.checkArchiveLinkActive[search.uuid])
+                                archiveWaitingToBeReady.value[pid] = false
+                            }
+                        } catch (error) {
+                            error
+                        }
+                    }, 10000)
+                    setTimeout(() => {
+                        clearInterval(intervals.value.checkArchiveLinkActive[search.uuid])
+                    }, 300000)
                 }
             })
         }
