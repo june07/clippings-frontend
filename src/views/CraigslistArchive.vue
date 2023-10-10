@@ -17,7 +17,13 @@
                         <v-spacer />
                         <v-col cols="2" class="text-end text-caption pb-0">web</v-col>
                         <v-col :cols="smAndDown ? 10 : 9" class="text-start pb-0 pl-0">
-                            <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="`https://jc-archive.june07.com/craigslist/${listingPid}`" target="_blank" class="text-caption text-truncate">{{ `https://jc-archive.june07.com/craigslist/${listingPid}` }}</v-btn>
+                            <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="`https://jc-archive.june07.com/craigslist/${listingPid}`" target="_blank" :loading="archiveWaitingToBeReady">
+                                <div class="text-caption text-truncate">{{ `https://jc-archive.june07.com/craigslist/${listingPid}` }}</div>
+                                <template v-slot:loader>
+                                    <v-progress-circular size="x-small" width="1" class="mr-2" indeterminate />
+                                    <div class="text-caption text-truncate">{{ `https://jc-archive.june07.com/craigslist/${listingPid}` }}</div>
+                                </template>
+                            </v-btn>
                             <a v-else style="text-decoration: none" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="`https://jc-archive.june07.com/craigslist/${listingPid}`" target="_blank">
                                 <div class="text-caption text-truncate" :class="archiveWaitingToBeReady ? 'text-grey-lighten-2' : 'text-green'">
                                     <v-icon icon="link" class="mr-2" />{{ `https://jc-archive.june07.com/craigslist/${listingPid}` }}
@@ -30,8 +36,12 @@
                         <v-spacer />
                         <v-col cols="2" class="text-end text-caption py-0">git</v-col>
                         <v-col :cols="smAndDown ? 10 : 9" class="text-start py-0 pl-0">
-                            <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="`https://github.com/june07/jc-archive/tree/main/craigslist/${listingPid}`" target="_blank" class="text-caption text-truncate">
+                            <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="`https://github.com/june07/jc-archive/tree/main/craigslist/${listingPid}`" target="_blank" :loading="archiveWaitingToBeReady">
                                 <div class="text-caption text-truncate">{{ `https://github.com/june07/jc-archive/tree/main/craigslist/${listingPid}` }}</div>
+                                <template v-slot:loader>
+                                    <v-progress-circular size="x-small" width="1" class="mr-2" indeterminate />
+                                    <div class="text-caption text-truncate">{{ `https://github.com/june07/jc-archive/tree/main/craigslist/${listingPid}` }}</div>
+                                </template>
                             </v-btn>
                             <a v-else style="text-decoration: none" :href="`https://github.com/june07/jc-archive/tree/main/craigslist/${listingPid}`" target="_blank">
                                 <div class="text-caption text-truncate" :class="archiveWaitingToBeReady ? 'text-grey-lighten-2' : 'text-green'">
@@ -76,7 +86,7 @@ const rules = {
 }
 const { VITE_API_SERVER } = import.meta.env
 const loading = ref({
-    archive: false
+    archive: false,
 })
 const debug = ref({})
 const isMounted = ref(false)
