@@ -163,7 +163,7 @@ onMounted(() => {
         sio.connect()
     }
     sio.on('connect', () => {
-        if (/#share/.test(document.location.hash) && store.textField) {
+        if (/\/share/.test(document.location.pathname) && store.textField) {
             archiveHandler()
         } else if (listingPid.value) {
             sio.emit('getArchive', listingPid.value, archive => {
