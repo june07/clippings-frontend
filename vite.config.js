@@ -8,7 +8,7 @@ import { defineConfig } from "vite"
 import { fileURLToPath, URL } from "node:url"
 
 const { NODE_ENV } = process.env
-console.log('NODE_ENV.......................', NODE_ENV)
+
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [
@@ -44,7 +44,7 @@ export default defineConfig({
                 "start_url": NODE_ENV === 'production' ? "https://clippings.june07.com" : "https://local.clippings.june07.com",
                 "display": "standalone",
                 "share_target": {
-                    "action": "/share",
+                    "action": "/#share",
                     "method": "POST",
                     "enctype": "multipart/form-data",
                     "params": {
