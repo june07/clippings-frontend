@@ -18,7 +18,6 @@ export default defineConfig({
             autoImport: true,
         }),
         VitePWA({
-            exclude: ['/v1/notice/webpush-subscription'],
             registerType: 'autoUpdate',
             devOptions: {
                 enabled: true
