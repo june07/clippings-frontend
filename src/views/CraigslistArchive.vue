@@ -1,13 +1,18 @@
 <template>
     <v-container class="h-100 d-flex align-center justify-center flex-column" fluid>
+        <p :class="smAndDown ? 'text-h6' : 'text-h5'" class="mb-4">Clippings is an archival tool for online classified ads like Craigslist!</p>
+        <p :class="smAndDown ? 'text-body-2' : 'text-body-1'">It takes a snapshot of the ad and saves it to the cloud so that it will always be available even if the original poster (or anyone else) removes it.</p>
+        <p :class="smAndDown ? 'text-body-2' : 'text-body-1'">
+        </p>
+
         <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'">
             <v-card-title class="font-weight-light text-center">Archive an Ad</v-card-title>
             <v-card-subtitle class="font-weight-light text-center">Enter the link to the ad you want to archive</v-card-subtitle>
             <v-card-text>
-                <v-text-field density="compact" variant="solo" rounded="lg" v-model="store.textField" persistent-hint hint="Any Craigslist ad link" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url" />
+                <v-text-field validate-on="lazy" density="compact" variant="solo" rounded="lg" v-model="store.textField" persistent-hint hint="Any Craigslist ad link" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url" />
                 <div v-if="archiveData[listingPid] || archiveWaitingToBeReady !== undefined" class="text-center">
                     <div class="text-h6 my-4">Ad saved.</div>
-                    <p class="text-start mb-4">By saving this ad you've ensured that no matter what it will be around to reference later. The data is saved to the cloud and accessible via the links below:</p>
+                    <p class="text-start mb-4">By saving this ad you've ensured that it'll be around to reference later. The data is saved to the cloud and accessible via the links below:</p>
                     <v-row class="d-flex align-center">
                         <v-spacer />
                         <v-col cols="2" class="text-end text-caption pb-0">web</v-col>
@@ -56,7 +61,7 @@ import cookie from 'cookie'
 const { $api } = getCurrentInstance().appContext.config.globalProperties
 const intervals = ref({
     default: undefined,
-    checkArchiveLinkActive: {}
+    checkArchiveLinkActive: undefined
 })
 const timeouts = ref({
     updateCommentData: undefined,
@@ -120,7 +125,7 @@ function resetHandler() {
 }
 function reset() {
     archiveWaitingToBeReady.value = undefined
-    store.textField = ''
+    store.textField = undefined
 }
 watch(() => store.textField, (newValue, oldValue) => {
     if (!newValue || newValue === oldValue || !newValue.match(/\d{10}/)?.[0]) return
@@ -154,11 +159,11 @@ onMounted(() => {
             loading.value.archive = false
             archiveWaitingToBeReady.value = true
 
-            intervals.value.checkArchiveLinkActive[search.uuid] = setInterval(async () => {
+            intervals.value.checkArchiveLinkActive = setInterval(async () => {
                 try {
                     const response = await fetch(gitUrl)
                     if (response.status == 200) {
-                        clearInterval(intervals.value.checkArchiveLinkActive[search.uuid])
+                        clearInterval(intervals.value.checkArchiveLinkActive)
                         archiveWaitingToBeReady.value = false
                     }
                 } catch (error) {
@@ -166,7 +171,7 @@ onMounted(() => {
                 }
             }, 10000)
             setTimeout(() => {
-                clearInterval(intervals.value.checkArchiveLinkActive[search.uuid])
+                clearInterval(intervals.value.checkArchiveLinkActive)
             }, 300000)
         })
     setTimeout(() => {
