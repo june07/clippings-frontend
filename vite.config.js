@@ -7,6 +7,8 @@ import { VitePWA } from "vite-plugin-pwa"
 import { defineConfig } from "vite"
 import { fileURLToPath, URL } from "node:url"
 
+const { MODE } = import.meta.env
+
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [
@@ -39,7 +41,7 @@ export default defineConfig({
                 ],
                 "theme_color": "#ffffff",
                 "background_color": "#ffffff",
-                "start_url": import.meta.MODE === 'production' ? "https://clippings.june07.com" : "https://local.clippings.june07.com",
+                "start_url": MODE === 'production' ? "https://clippings.june07.com" : "https://local.clippings.june07.com",
                 "display": "standalone",
                 "share_target": {
                     "action": "/share",
@@ -52,7 +54,7 @@ export default defineConfig({
                     }
                 }
             },
-            minify: import.meta.MODE === 'production' ? true : false,
+            minify: MODE === 'production' ? true : false,
             workbox: {
                 importScripts: ['sw.js'],
             }
