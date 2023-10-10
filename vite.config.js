@@ -1,6 +1,7 @@
 // Plugins
 import vue from "@vitejs/plugin-vue"
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify"
+import { VitePWA } from "vite-plugin-pwa"
 
 // Utilities
 import { defineConfig } from "vite"
@@ -15,7 +16,49 @@ export default defineConfig({
         // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
         vuetify({
             autoImport: true,
-        })
+        }),
+        VitePWA({
+            exclude: ['/v1/notice/webpush-subscription'],
+            registerType: 'autoUpdate',
+            devOptions: {
+                enabled: true
+            },
+            manifest: {
+                "name": "Clippings - by June07",
+                "short_name": "Clippings",
+                "icons": [
+                    {
+                        "src": "/android-chrome-192x192.png",
+                        "sizes": "192x192",
+                        "type": "image/png"
+                    },
+                    {
+                        "src": "/android-chrome-512x512.png",
+                        "sizes": "512x512",
+                        "type": "image/png"
+                    }
+                ],
+                "theme_color": "#ffffff",
+                "background_color": "#ffffff",
+                "start_url": import.meta.MODE === 'production' ? "https://clippings.june07.com" : "https://local.clippings.june07.com",
+                "display": "standalone",
+                "share_target": {
+                    "action": "/share",
+                    "method": "POST",
+                    "enctype": "multipart/form-data",
+                    "params": {
+                        "title": "title",
+                        "text": "text",
+                        "url": "url"
+                    }
+                }
+            },
+            minify: import.meta.MODE === 'production' ? true : false,
+            workbox: {
+                importScripts: ['sw.js'],
+            }
+        }),
+
     ],
     define: { "process.env": {} },
     resolve: {

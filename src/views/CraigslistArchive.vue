@@ -54,7 +54,7 @@
                 </div>
             </v-card-text>
             <v-card-actions class="justify-center mt-8">
-                <v-btn v-if="!archiveData[listingPid]" variant="tonal" @click="archiveHandler(store.textField)" :loading="loading.archive" :disabled="archiveData[listingPid] || archiveWaitingToBeReady !== undefined ? true : false">save forever</v-btn>
+                <v-btn v-if="!archiveData[listingPid]" variant="tonal" @click="archiveHandler" :loading="loading.archive" :disabled="archiveData[listingPid] || archiveWaitingToBeReady !== undefined ? true : false">save forever</v-btn>
                 <v-btn v-else variant="tonal" @click="resetHandler">save another</v-btn>
             </v-card-actions>
         </v-card>
@@ -62,7 +62,7 @@
 </template>
 <style scoped></style>
 <script setup>
-import { ref, onMounted, getCurrentInstance, computed, watch, onBeforeUnmount } from 'vue'
+import { ref, onMounted, getCurrentInstance, computed, watch } from 'vue'
 import { useAppStore } from '@/store/app'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 import io from 'socket.io-client'
@@ -144,6 +144,12 @@ watch(() => store.textField, (newValue, oldValue) => {
     })
 })
 onMounted(() => {
+    if (/#share/.test(document.location.hash)) {
+        const url = new URLSearchParams(document.location.hash).get('url')
+        if (/https:\/\/.*\.craigslist\.org\/.+/.test(url)) {
+            store.textField = url
+        }
+    }
     if (!store.sessionId) {
         (async () => {
             await $api.info()
@@ -156,7 +162,9 @@ onMounted(() => {
         sio.connect()
     }
     sio.on('connect', () => {
-        if (listingPid.value) {
+        if (/#share/.test(document.location.hash) && store.textField) {
+            archiveHandler()
+        } else if (listingPid.value) {
             sio.emit('getArchive', listingPid.value, archive => {
                 archiveData.value[listingPid.value] = JSON.parse(archive)
             })
