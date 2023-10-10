@@ -173,8 +173,9 @@ onMounted(() => {
     })
         .on('update', (payload) => {
             const { archived } = payload
-            const { gitUrl } = archived
+            const { gitUrl, listingPid } = archived
 
+            archiveData.value[listingPid] = archived
             loading.value.archive = false
             archiveWaitingToBeReady.value = true
 
