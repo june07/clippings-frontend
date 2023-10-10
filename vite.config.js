@@ -9,6 +9,7 @@ import { fileURLToPath, URL } from "node:url"
 
 const { MODE } = import.meta.env
 
+console.log('mode.......................', MODE)
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [
