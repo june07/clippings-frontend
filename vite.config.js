@@ -44,7 +44,7 @@ export default defineConfig({
                 "start_url": NODE_ENV === 'production' ? "https://clippings.june07.com" : "https://local.clippings.june07.com",
                 "display": "standalone",
                 "share_target": {
-                    "action": "/#share",
+                    "action": "/share",
                     "method": "GET",
                     "enctype": "application/x-www-form-urlencoded",
                     "params": {

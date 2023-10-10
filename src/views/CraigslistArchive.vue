@@ -144,8 +144,9 @@ watch(() => store.textField, (newValue, oldValue) => {
     })
 })
 onMounted(() => {
-    if (/#share/.test(document.location.hash)) {
-        const url = new URLSearchParams(document.location.hash).get('url')
+    if (/\/share/.test(document.location.pathname)) {
+        const url = new URLSearchParams(document.location.search).get('url')
+        const title = new URLSearchParams(document.location.search).get('title')
         if (/https:\/\/.*\.craigslist\.org\/.+/.test(url)) {
             store.textField = url
         }
