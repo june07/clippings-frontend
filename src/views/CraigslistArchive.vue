@@ -35,7 +35,7 @@
                 <div v-for="mostRecentListing of mostRecentListings">
                     <a style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentListing.listingPid}`" target="_blank">
                         <div class="text-caption text-truncate">
-                            <v-icon icon="link" class="mr-2" />{{ `${mostRecentListing.metadata?.friendlyDatetimes?.posted+', ' || ''}${mostRecentListing.metadata?.title}` }}
+                            <v-icon icon="link" class="mr-2" />{{ mostRecentListing.metadata?.title }}
                         </div>
                     </a>
                 </div>
