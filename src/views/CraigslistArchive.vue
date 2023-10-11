@@ -17,16 +17,13 @@
             </p>
         </v-card>
         <v-spacer />
-        <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentListingPids.length">
-            <v-card-title class="font-weight-light text-center">Most recently archived Ads</v-card-title>
-            <v-card-text v-if="!loading.archive" class="font-weight-light text-center">
-                <div v-for="mostRecentListingPid of mostRecentListingPids">
-                    <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentListingPid}`" target="_blank">
-                        <div class="text-caption text-truncate">{{ `https://clippings-archive.june07.com/craigslist/${mostRecentListingPid}` }}</div>
-                    </v-btn>
-                    <a v-else style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentListingPid}`" target="_blank">
+        <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentListings?.length">
+            <v-card-title class="font-weight-light text-center">Most recently archived ads</v-card-title>
+            <v-card-text class="font-weight-light text-center">
+                <div v-for="mostRecentListing of mostRecentListings">
+                    <a style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentListing.listingPid}`" target="_blank">
                         <div class="text-caption text-truncate">
-                            <v-icon icon="link" class="mr-2" />{{ `https://clippings-archive.june07.com/craigslist/${mostRecentListingPid}` }}
+                            <v-icon icon="link" class="mr-2" />{{ `${mostRecentListing.metadata?.title}, ${mostRecentListing.metadata?.friendlyDatetimes?.posted || ''}` }}
                         </div>
                     </a>
                 </div>
@@ -128,7 +125,7 @@ const { VITE_API_SERVER } = import.meta.env
 const loading = ref({
     archive: false,
 })
-const mostRecentListingPids = ref([])
+const mostRecentListings = ref([])
 const location = ref({})
 const debug = ref({})
 const isMounted = ref(false)
@@ -214,11 +211,14 @@ onMounted(() => {
                 archiveData.value[listingPid.value] = JSON.parse(archive)
             })
         }
-        sio.emit('getMostRecentListingPids', pids => {
-            mostRecentListingPids.value = pids
+        sio.emit('getMostRecentListings', payload => {
+            mostRecentListings.value = payload.map(mostRecentListing => JSON.parse(mostRecentListing))
         })
     })
-        .on('update', (payload) => {
+        .on('mostRecentListings', payload => {
+            mostRecentListings.value = payload.map(mostRecentListing => JSON.parse(mostRecentListing))
+        })
+        .on('update', payload => {
             const { archived } = payload
             const { gitUrl, listingPid } = archived
 
