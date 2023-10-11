@@ -9,6 +9,7 @@
             <v-spacer />
             <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="email" :icon="smAndDown ? 'email' : undefined" href="mailto://support@june07.com" text="email" />
             <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="web" :icon="smAndDown ? 'web' : undefined" href="https://june07.com" text="blog" />
+            <social-share size="small" :density="smAndDown ? 'compact' : 'default'" :icon="smAndDown ? 'share' : undefined" />
             <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="help" :icon="smAndDown ? 'help' : undefined" href="https://blog.june07.com/clippings-frequently-asked-questions/" text="faq" />
             <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="toll" :icon="smAndDown ? 'toll' : undefined" href="https://blog.june07.com/donate" text="donate" />
         </div>
@@ -32,8 +33,9 @@
         <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentListings?.length">
             <v-card-title class="font-weight-light text-center">Most recently archived ads</v-card-title>
             <v-card-text class="font-weight-light">
-                <div v-for="mostRecentListing of mostRecentListings">
-                    <a style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentListing.listingPid}`" target="_blank">
+                <div class="d-flex align-center" v-for="mostRecentListing of mostRecentListings">
+                    <social-share size="small" density="compact" icon="share" :url="`https://clippings-archive.june07.com/craigslist/${mostRecentListing.listingPid}`" color="amber-lighten-2" />
+                    <a style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentListing.listingPid}`" target="_blank" class="ml-1">
                         <div class="text-caption text-truncate">
                             <v-icon icon="link" class="mr-2" />{{ mostRecentListing.metadata?.title }}
                         </div>
@@ -119,6 +121,7 @@ import 'animate.css'
 
 import IconBase from '@/components/IconBase.vue'
 import IconLogo from '@/components/IconLogo.vue'
+import SocialShare from '@/components/SocialShare.vue'
 
 const { $api } = getCurrentInstance().appContext.config.globalProperties
 const intervals = ref({
