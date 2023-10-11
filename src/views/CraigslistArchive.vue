@@ -31,11 +31,11 @@
         <v-spacer />
         <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentListings?.length">
             <v-card-title class="font-weight-light text-center">Most recently archived ads</v-card-title>
-            <v-card-text class="font-weight-light text-center">
+            <v-card-text class="font-weight-light">
                 <div v-for="mostRecentListing of mostRecentListings">
                     <a style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentListing.listingPid}`" target="_blank">
                         <div class="text-caption text-truncate">
-                            <v-icon icon="link" class="mr-2" />{{ `${mostRecentListing.metadata?.title}, ${mostRecentListing.metadata?.friendlyDatetimes?.posted || ''}` }}
+                            <v-icon icon="link" class="mr-2" />{{ `${mostRecentListing.metadata?.friendlyDatetimes?.posted+', ' || ''}${mostRecentListing.metadata?.title}` }}
                         </div>
                     </a>
                 </div>
@@ -232,10 +232,12 @@ onMounted(() => {
         }
         sio.emit('getMostRecentListings', payload => {
             mostRecentListings.value = payload.map(mostRecentListing => JSON.parse(mostRecentListing))
+                .sort((listingA, listingB) => listingA.createdAt > listingB.createdAt ? 0 : -1)
         })
     })
         .on('mostRecentListings', payload => {
             mostRecentListings.value = payload.map(mostRecentListing => JSON.parse(mostRecentListing))
+                .sort((listingA, listingB) => listingA.createdAt > listingB.createdAt ? 0 : -1)
         })
         .on('update', payload => {
             const { archived } = payload
