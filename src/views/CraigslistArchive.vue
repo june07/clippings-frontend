@@ -3,14 +3,14 @@
         <div class="d-flex align-center" :style="smAndDown ? 'width: -webkit-fill-available' : 'width: 800px'">
             <div class="d-flex align-center justify-start">
                 <icon-base><icon-logo iconColor="white" /></icon-base>
-                <span class="font-weight-bold ml-2 mr-1">Clippings</span><span class="mr-2 font-weight-thin font-italic">by June07</span>
+                <span v-if="!smAndDown"><span class="font-weight-bold ml-2 mr-1">Clippings</span><span class="mr-2 font-weight-thin font-italic">by June07</span></span>
                 <v-btn variant="text" size="small" prepend-icon="home" href="/home" v-if="location.pathname !== '/home'">home</v-btn>
             </div>
             <v-spacer />
-            <v-btn variant="text" size="small" prepend-icon="email" href="mailto://support@june07.com">email</v-btn>
-            <v-btn variant="text" size="small" prepend-icon="web" href="https://june07.com">blog</v-btn>
-            <v-btn variant="text" size="small" prepend-icon="question_mark" href="https://blog.june07.com/clippings-frequently-asked-questions/" target="_blank" rel="noopener">faq</v-btn>
-            <v-btn variant="text" size="small" prepend-icon="web" href="https://www.paypal.com/donate/?hosted_button_id=CKAXEZWZDP8DC" target="_blank" rel="noopener">donate</v-btn>
+            <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="email" :icon="smAndDown ? 'email' : undefined" href="mailto://support@june07.com" text="email" />
+            <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="web" :icon="smAndDown ? 'web' : undefined" href="https://june07.com" text="blog" />
+            <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="help" :icon="smAndDown ? 'help' : undefined" href="https://blog.june07.com/clippings-frequently-asked-questions/" text="faq" />
+            <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="toll" :icon="smAndDown ? 'toll' : undefined" href="https://blog.june07.com/donate" text="donate" />
         </div>
         <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="location.pathname === '/home'">
             <p :class="smAndDown ? 'text-h5' : 'text-h4'" class="mb-8"><span class="font-weight-bold">Clippings</span><span class="font-italic"> is your modern-day archival tool for online classified ads...</span> like Craigslist!</p>
@@ -203,7 +203,7 @@ onMounted(() => {
     if (!store.splashed) {
         store.splashed = new Date()
         window.location.pathname = '/home'
-    } 
+    }
     if (/\/share/.test(document.location.pathname)) {
         const url = new URLSearchParams(document.location.search).get('url') || new URLSearchParams(document.location.search).get('text')
         const title = new URLSearchParams(document.location.search).get('title')
