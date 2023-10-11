@@ -1,5 +1,16 @@
 <template>
     <v-container class="h-100 d-flex align-center justify-center flex-column" fluid>
+        <div class="d-flex align-center" :style="smAndDown ? 'width: -webkit-fill-available' : 'width: 800px'">
+            <div class="d-flex align-center justify-start">
+                <icon-base><icon-logo iconColor="white" /></icon-base>
+                <span class="font-weight-bold ml-2 mr-1">Clippings</span><span class="mr-2 font-weight-thin font-italic">by June07</span>
+                <v-btn variant="text" size="small" prepend-icon="home" href="/home" v-if="location.pathname !== '/home'">home</v-btn>
+            </div>
+            <v-spacer />
+            <v-btn variant="text" size="small" prepend-icon="email" href="mailto://support@june07.com">email</v-btn>
+            <v-btn variant="text" size="small" prepend-icon="web" href="https://june07.com">blog</v-btn>
+            <v-btn variant="text" size="small" prepend-icon="web" href="https://www.paypal.com/donate/?hosted_button_id=CKAXEZWZDP8DC" target="_blank" rel="noopener">donate</v-btn>
+        </div>
         <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="location.pathname === '/home'">
             <p :class="smAndDown ? 'text-h5' : 'text-h4'" class="mb-8"><span class="font-weight-bold">Clippings</span><span class="font-italic"> is your modern-day archival tool for online classified ads...</span> like Craigslist!</p>
             <p :class="smAndDown ? 'text-body-2' : 'text-body-1'">Clippings is your modern-day archival tool for online classified ads, reminiscent of the days when we used to clip newspaper ads. It captures and securely stores ad snapshots in the cloud, ensuring they're always accessible—even if the original poster or anyone else removes them.</p>
@@ -105,6 +116,9 @@ import io from 'socket.io-client'
 import cookie from 'cookie'
 import 'animate.css'
 
+import IconBase from '@/components/IconBase.vue'
+import IconLogo from '@/components/IconLogo.vue'
+
 const { $api } = getCurrentInstance().appContext.config.globalProperties
 const intervals = ref({
     default: undefined,
@@ -185,6 +199,10 @@ watch(() => store.textField, (newValue, oldValue) => {
 })
 onMounted(() => {
     location.value = document.location
+    if (!store.splashed) {
+        store.splashed = new Date()
+        window.location.pathname = '/home'
+    } 
     if (/\/share/.test(document.location.pathname)) {
         const url = new URLSearchParams(document.location.search).get('url')
         const title = new URLSearchParams(document.location.search).get('title')

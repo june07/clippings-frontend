@@ -1,8 +1,10 @@
 <template>
-    <v-app ref="craigslist" :class="{ 'blur': showCredits, 'mobile': smAndDown }">
+    <v-app ref="clippings" :class="{ 'blur': showCredits, 'mobile': smAndDown }">
+        <v-navigation-drawer order="2" width="200" floating location="left" />
         <v-main>
             <craigslist-archive />
         </v-main>
+        <v-navigation-drawer order="2" width="200" floating location="right" />
 
         <v-snackbar text :timeout="-1" v-model="notice" style="opacity: 0.9" @click="notice = !notice">
             <v-row>
