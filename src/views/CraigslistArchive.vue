@@ -9,6 +9,7 @@
             <v-spacer />
             <v-btn variant="text" size="small" prepend-icon="email" href="mailto://support@june07.com">email</v-btn>
             <v-btn variant="text" size="small" prepend-icon="web" href="https://june07.com">blog</v-btn>
+            <v-btn variant="text" size="small" prepend-icon="question_mark" href="https://blog.june07.com/clippings-frequently-asked-questions/" target="_blank" rel="noopener">faq</v-btn>
             <v-btn variant="text" size="small" prepend-icon="web" href="https://www.paypal.com/donate/?hosted_button_id=CKAXEZWZDP8DC" target="_blank" rel="noopener">donate</v-btn>
         </div>
         <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="location.pathname === '/home'">
