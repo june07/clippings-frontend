@@ -115,7 +115,7 @@
                         <v-tooltip>
                             <template v-slot:activator="{ props }">
                                 <a v-bind="props" style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentDiscussion.title}`">
-                                {{ mostRecentDiscussion.comments.nodes[0].body }}
+                                {{ mostRecentDiscussion.comments.nodes[0]?.body }}
                             </a>
                             </template>
                             <div>{{ humanizeDuration(Date.now() - Date.parse(mostRecentDiscussion.createdAt), { units: ['h', 'm'], round: true }) }} ago</div>
