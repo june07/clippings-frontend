@@ -263,7 +263,7 @@ onMounted(() => {
                 .sort((listingA, listingB) => (listingA.createdAt || 264330300000) > (listingB.createdAt || 264330300000) ? -1 : 0)
         })
         .on('mostRecentDiscussions', payload => {
-            mostRecentDiscussions.value = payload
+            mostRecentDiscussions.value = payload.filter(discussion => discussion.comments.totalCount > 0)
         })
         .on('update', payload => {
             const { archived } = payload
