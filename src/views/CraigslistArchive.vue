@@ -251,12 +251,12 @@ onMounted(() => {
         sio.emit('getMostRecentDiscussions', { last: 10 })
         sio.emit('getMostRecentListings', payload => {
             mostRecentListings.value = payload.map(mostRecentListing => JSON.parse(mostRecentListing))
-                .sort((listingA, listingB) => listingA.createdAt > listingB.createdAt ? 0 : -1)
+                .sort((listingA, listingB) => (listingA.createdAt || Date.now()) > (listingB.createdAt || Date.now()) ? 0 : -1)
         })
     })
         .on('mostRecentListings', payload => {
             mostRecentListings.value = payload.map(mostRecentListing => JSON.parse(mostRecentListing))
-                .sort((listingA, listingB) => listingA.createdAt > listingB.createdAt ? 0 : -1)
+                .sort((listingA, listingB) => (listingA.createdAt || Date.now()) > (listingB.createdAt || Date.now()) ? 0 : -1)
         })
         .on('mostRecentDiscussions', payload => {
             mostRecentDiscussions.value = payload
