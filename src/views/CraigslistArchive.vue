@@ -107,6 +107,19 @@
                 </div>
             </v-card-actions>
         </v-card>
+        <v-card rounded="xl" class="pa-4 mt-2" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentDiscussions?.length">
+            <v-card-title class="font-weight-light text-center">Most recent comments</v-card-title>
+            <v-card-text class="font-weight-light">
+                <div class="d-flex align-center justify-center" v-for="mostRecentDiscussion of mostRecentDiscussions">
+                    <a style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentDiscussion.title}`">
+                        <div class="d-flex">
+                            <div style="width: 170px" class="mr-4 text-caption text-end flex-shrink">{{ humanizeDuration(Date.now() - Date.parse(mostRecentDiscussion.createdAt), { units: ['h', 'm'], round: true }) }} ago</div>
+                            <div style="width: 300px">{{ mostRecentDiscussion.comments.nodes[0].body }}</div>
+                        </div>
+                    </a>
+                </div>
+            </v-card-text>
+        </v-card>
         <v-spacer />
     </v-container>
 </template>
@@ -118,6 +131,7 @@ import { useDisplay } from 'vuetify/lib/framework.mjs'
 import io from 'socket.io-client'
 import cookie from 'cookie'
 import 'animate.css'
+import humanizeDuration from 'humanize-duration'
 
 import IconBase from '@/components/IconBase.vue'
 import IconLogo from '@/components/IconLogo.vue'
@@ -144,6 +158,7 @@ const loading = ref({
     archive: false,
 })
 const mostRecentListings = ref([])
+const mostRecentDiscussions = ref([])
 const location = ref({})
 const debug = ref({})
 const isMounted = ref(false)
@@ -233,6 +248,7 @@ onMounted(() => {
                 archiveData.value[listingPid.value] = JSON.parse(archive)
             })
         }
+        sio.emit('getMostRecentDiscussions', { last: 10 })
         sio.emit('getMostRecentListings', payload => {
             mostRecentListings.value = payload.map(mostRecentListing => JSON.parse(mostRecentListing))
                 .sort((listingA, listingB) => listingA.createdAt > listingB.createdAt ? 0 : -1)
@@ -241,6 +257,9 @@ onMounted(() => {
         .on('mostRecentListings', payload => {
             mostRecentListings.value = payload.map(mostRecentListing => JSON.parse(mostRecentListing))
                 .sort((listingA, listingB) => listingA.createdAt > listingB.createdAt ? 0 : -1)
+        })
+        .on('mostRecentDiscussions', payload => {
+            mostRecentDiscussions.value = payload
         })
         .on('update', payload => {
             const { archived } = payload
