@@ -31,7 +31,7 @@
         </v-card>
         <v-spacer />
         <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentListings?.length">
-            <v-card-title class="font-weight-light text-center">Most recently archived ads</v-card-title>
+            <v-card-title class="font-weight-light text-center">Most recently archived ads 🆕</v-card-title>
             <v-card-text class="font-weight-light">
                 <div class="d-flex align-center" v-for="mostRecentListing of mostRecentListings">
                     <social-share size="small" density="compact" icon="share" :url="`https://clippings-archive.june07.com/craigslist/${mostRecentListing.listingPid}`" color="amber-lighten-2" />
@@ -43,12 +43,12 @@
                 </div>
             </v-card-text>
         </v-card>
-        <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" :elevation="loading.archive ? 0 : undefined">
-            <v-card-title class="font-weight-light text-center">{{ loading.archive ? 'Archiving' : 'Archive an' }} Ad</v-card-title>
+        <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" :elevation="loading.archive ? 0 : 2">
+            <v-card-title class="font-weight-light text-center">{{ loading.archive ? 'Archiving' : 'Archive an' }} ad ✂️</v-card-title>
             <v-card-subtitle v-if="!loading.archive" class="font-weight-light text-center">Enter the link to the ad you want to archive</v-card-subtitle>
             <v-card-subtitle v-else class="font-weight-light text-center font-caption text-wrap">{{ smAndDown ? shortenAdURL(store.textField) : store.textField }}</v-card-subtitle>
-            <v-card-text v-show="!loading.archive" class="pa-0">
-                <v-text-field validate-on="lazy" density="compact" variant="solo" roundesd="lg" v-model="store.textField" persistent-hint hint="Any Craigslist ad link" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url" />
+            <v-card-text v-show="!loading.archive" class="pa-0 mt-8">
+                <v-text-field validate-on="lazy" density="compact" variant="outlined" rounded="lg" v-model="store.textField" persistent-hint hint="Any Craigslist ad link" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url" />
                 <div v-if="archiveData[listingPid] || archiveWaitingToBeReady !== undefined" class="text-center">
                     <div class="text-h6 my-4">📰 Ad saved. 🗞️</div>
                     <p class="text-start mb-4">The data is saved to the cloud and will be accessible via the links below once they turn green:</p>
@@ -108,7 +108,7 @@
             </v-card-actions>
         </v-card>
         <v-card rounded="xl" class="pa-4 mt-2" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentDiscussions?.length">
-            <v-card-title class="font-weight-light text-center">Most recent comments</v-card-title>
+            <v-card-title class="font-weight-light text-center">Most recent ad comments 💬</v-card-title>
             <v-card-text class="font-weight-light">
                 <v-list>
                     <v-list-item density="compact" v-for="mostRecentDiscussion of mostRecentDiscussions" :prepend-avatar="mostRecentDiscussion.comments.nodes?.[0]?.author?.avatarUrl">
@@ -127,7 +127,11 @@
         <v-spacer />
     </v-container>
 </template>
-<style scoped></style>
+<style scoped>
+:deep() .v-text-field .v-field--no-label input, .v-text-field .v-field--active input {
+    padding: 0 8px 0 8px;
+}
+</style>
 <script setup>
 import { ref, onMounted, getCurrentInstance, computed, watch } from 'vue'
 import { useAppStore } from '@/store/app'
