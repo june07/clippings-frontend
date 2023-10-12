@@ -1,12 +1,12 @@
 <template>
-    <v-app ref="clippings" :class="{ 'blur': showCredits, 'mobile': smAndDown }">
+    <v-app ref="clippings" :class="{ 'blur': showCredits, 'mobile': smAndDown }" :theme="store.theme">
         <v-navigation-drawer order="2" width="200" floating location="left">
             <div class="h-100 d-flex align-center">
                 <!-- <a href="https://www.digitalocean.com/?refcode=fe4184318b19&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge"><img src="https://web-platforms.sfo2.digitaloceanspaces.com/WWW/Badge%202.svg" alt="DigitalOcean Referral Badge" /></a> -->
             </div>
         </v-navigation-drawer>
         <v-main>
-            <craigslist-archive />
+            <craigslist-archive @change-theme="themeHandler" />
         </v-main>
         <v-navigation-drawer order="2" width="200" floating location="right">
             <div class="h-100 d-flex align-center">

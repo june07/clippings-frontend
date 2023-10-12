@@ -12,6 +12,7 @@
             <social-share size="small" :density="smAndDown ? 'compact' : 'default'" :icon="smAndDown ? 'share' : undefined" />
             <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="help" :icon="smAndDown ? 'help' : undefined" href="https://blog.june07.com/clippings-frequently-asked-questions/" text="faq" />
             <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="toll" :icon="smAndDown ? 'toll' : undefined" href="https://blog.june07.com/donate" text="donate" />
+            <v-btn variant="text" size="x-small" :icon="store.theme === 'light' ? 'light_mode': 'dark_mode'" id="theme" @click="$emit('changeTheme')" />
         </div>
         <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="location.pathname === '/home'">
             <p :class="smAndDown ? 'text-h5' : 'text-h4'" class="mb-8"><span class="font-weight-bold">Clippings</span><span class="font-italic"> is your modern-day archival tool for online classified ads...</span> like Craigslist!</p>
@@ -33,17 +34,19 @@
         <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentListings?.length">
             <v-card-title class="font-weight-light text-center">Most recently archived ads 🆕</v-card-title>
             <v-card-text class="font-weight-light">
-                <div class="d-flex align-center" v-for="mostRecentListing of mostRecentListings">
-                    <social-share size="small" density="compact" icon="share" :url="`https://clippings-archive.june07.com/craigslist/${mostRecentListing.listingPid}`" color="amber-lighten-2" />
-                    <a style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentListing.listingPid}`" target="_blank" class="ml-1">
-                        <div class="text-caption text-truncate">
-                            <v-icon icon="link" class="mr-2" />{{ mostRecentListing.metadata?.title }}
-                        </div>
-                    </a>
-                </div>
+                <v-sheet rounded="xl" class="pa-4">
+                    <div class="d-flex align-center" v-for="mostRecentListing of mostRecentListings">
+                        <social-share size="small" density="compact" icon="share" :url="`https://clippings-archive.june07.com/craigslist/${mostRecentListing.listingPid}`" color="amber-lighten-2" />
+                        <a style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentListing.listingPid}`" target="_blank" class="ml-1">
+                            <div class="text-caption text-truncate">
+                                <v-icon icon="link" class="mr-2" />{{ mostRecentListing.metadata?.title }}
+                            </div>
+                        </a>
+                    </div>
+                </v-sheet>
             </v-card-text>
         </v-card>
-        <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" :elevation="loading.archive ? 0 : 2">
+        <v-card rounded="xl" class="pa-4 mt-2" :width="smAndDown ? '-webkit-fill-available' : '800px'" :elevation="loading.archive ? 0 : 2">
             <v-card-title class="font-weight-light text-center">{{ loading.archive ? 'Archiving' : 'Archive an' }} ad ✂️</v-card-title>
             <v-card-subtitle v-if="!loading.archive" class="font-weight-light text-center">Enter the link to the ad you want to archive</v-card-subtitle>
             <v-card-subtitle v-else class="font-weight-light text-center font-caption text-wrap">{{ smAndDown ? shortenAdURL(store.textField) : store.textField }}</v-card-subtitle>
@@ -110,9 +113,8 @@
         <v-card rounded="xl" class="pa-4 mt-2" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentDiscussions?.length">
             <v-card-title class="font-weight-light text-center text-amber">Most recent ad comments 💬</v-card-title>
             <v-card-text class="font-weight-light">
-
                 <v-list>
-                    <v-sheet rounded="xl" color="amber-lighten-5" class="py-2">
+                    <v-sheet rounded="xl" :color="store.theme === 'light' ? 'amber-lighten-5' : 'amber-lighten-1'" class="py-2">
                         <v-list-item density="compact" v-for="mostRecentDiscussion of mostRecentDiscussions" :prepend-avatar="mostRecentDiscussion.comments.nodes?.[0]?.author?.avatarUrl">
                             <v-tooltip>
                                 <template v-slot:activator="{ props }">
@@ -125,7 +127,6 @@
                         </v-list-item>
                     </v-sheet>
                 </v-list>
-
             </v-card-text>
         </v-card>
         <v-spacer />
