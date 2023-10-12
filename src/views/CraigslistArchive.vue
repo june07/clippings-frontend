@@ -111,19 +111,22 @@
             <v-card-title class="font-weight-light text-center">Most recent comments</v-card-title>
             <v-card-text class="font-weight-light">
                 <div class="d-flex align-center justify-center" v-for="mostRecentDiscussion of mostRecentDiscussions">
-                    <a style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentDiscussion.title}`">
-                        <div class="d-flex">
-                            <div style="width: 170px" class="mr-4 text-caption text-end flex-shrink">{{ humanizeDuration(Date.now() - Date.parse(mostRecentDiscussion.createdAt), { units: ['h', 'm'], round: true }) }} ago</div>
-                            <div style="width: 300px">{{ mostRecentDiscussion.comments.nodes[0].body }}</div>
-                        </div>
-                    </a>
+                    <v-tooltip>
+                        <template v-slot:activator="{ props }">
+                            <a v-bind="props" style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentDiscussion.title}`">
+                                {{ mostRecentDiscussion.comments.nodes[0].body }}
+                            </a>
+                        </template>
+                        <div>{{ humanizeDuration(Date.now() - Date.parse(mostRecentDiscussion.createdAt), { units: ['h', 'm'], round: true }) }} ago</div>
+                    </v-tooltip>
                 </div>
             </v-card-text>
         </v-card>
         <v-spacer />
     </v-container>
 </template>
-<style scoped></style>
+<style scoped>
+</style>
 <script setup>
 import { ref, onMounted, getCurrentInstance, computed, watch } from 'vue'
 import { useAppStore } from '@/store/app'
