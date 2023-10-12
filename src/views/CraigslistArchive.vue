@@ -111,7 +111,7 @@
             <v-card-title class="font-weight-light text-center">Most recent comments</v-card-title>
             <v-card-text class="font-weight-light">
                 <v-list>
-                    <v-list-item density="compact" v-for="mostRecentDiscussion of mostRecentDiscussions" :prepend-avatar="mostRecentDiscussion.comments.nodes[0].author.avatarUrl">
+                    <v-list-item density="compact" v-for="mostRecentDiscussion of mostRecentDiscussions" :prepend-avatar="mostRecentDiscussion.comments.nodes[0].author?.avatarUrl">
                         <v-tooltip>
                             <template v-slot:activator="{ props }">
                                 <a v-bind="props" style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentDiscussion.title}`">
