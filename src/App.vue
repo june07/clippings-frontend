@@ -62,8 +62,11 @@ const checkVersion = async () => {
     }
 }
 function reload() {
-    location.reload()
+    const url = new URL(window.location.href)
+    url.searchParams.set('cache', Date.now())
+    window.location.href = url.toString()
 }
+globalThis.reload = reload
 function themeHandler() {
     store.theme = store.theme === "light" ? "dark" : "light"
 }

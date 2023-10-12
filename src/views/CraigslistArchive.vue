@@ -108,27 +108,32 @@
             </v-card-actions>
         </v-card>
         <v-card rounded="xl" class="pa-4 mt-2" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentDiscussions?.length">
-            <v-card-title class="font-weight-light text-center">Most recent ad comments 💬</v-card-title>
+            <v-card-title class="font-weight-light text-center text-amber">Most recent ad comments 💬</v-card-title>
             <v-card-text class="font-weight-light">
+
                 <v-list>
-                    <v-list-item density="compact" v-for="mostRecentDiscussion of mostRecentDiscussions" :prepend-avatar="mostRecentDiscussion.comments.nodes?.[0]?.author?.avatarUrl">
-                        <v-tooltip>
-                            <template v-slot:activator="{ props }">
-                                <a v-bind="props" style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentDiscussion.title}`">
-                                {{ mostRecentDiscussion.comments.nodes[0]?.body }}
-                            </a>
-                            </template>
-                            <div>{{ humanizeDuration(Date.now() - Date.parse(mostRecentDiscussion.createdAt), { units: ['h', 'm'], round: true }) }} ago</div>
-                        </v-tooltip>
-                    </v-list-item>
+                    <v-sheet rounded="xl" color="amber-lighten-5" class="py-2">
+                        <v-list-item density="compact" v-for="mostRecentDiscussion of mostRecentDiscussions" :prepend-avatar="mostRecentDiscussion.comments.nodes?.[0]?.author?.avatarUrl">
+                            <v-tooltip>
+                                <template v-slot:activator="{ props }">
+                                    <a v-bind="props" style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentDiscussion.title}`">
+                                        {{ mostRecentDiscussion.comments.nodes[0]?.body }}
+                                    </a>
+                                </template>
+                                <div>{{ humanizeDuration(Date.now() - Date.parse(mostRecentDiscussion.createdAt), { units: ['h', 'm'], round: true }) }} ago</div>
+                            </v-tooltip>
+                        </v-list-item>
+                    </v-sheet>
                 </v-list>
+
             </v-card-text>
         </v-card>
         <v-spacer />
     </v-container>
 </template>
 <style scoped>
-:deep() .v-text-field .v-field--no-label input, .v-text-field .v-field--active input {
+:deep() .v-text-field .v-field--no-label input,
+.v-text-field .v-field--active input {
     padding: 0 8px 0 8px;
 }
 </style>
