@@ -100,19 +100,20 @@
                     </v-row>
                 </div>
             </v-card-text>
-            <v-card-actions class="justify-center mt-8">
+            <v-card-actions class="d-flex flex-column justify-center mt-8">
                 <v-progress-circular v-if="loading.archive" indeterminate :size="200" width="1" color="amber">
                     <v-btn v-if="!archiveData[listingPid]" :variant="loading.archive ? 'plain' : 'tonal'" @click="archiveHandler" :disabled="archiveData[listingPid] || archiveWaitingToBeReady !== undefined ? true : false">
                         <div class="text-weight-light" :class="loading.archive ? 'animate__animated animate__pulse animate__infinite' : ''">{{ loading.archive ? 'saving' : 'save' }}</div>
                     </v-btn>
                     <v-btn v-else variant="tonal" @click="resetHandler">save another</v-btn>
                 </v-progress-circular>
-                <div v-else>
+                <div v-else :class="!store.subscribed.daily ? 'mb-8' : ''">
                     <v-btn v-if="!archiveData[listingPid]" variant="tonal" rounded @click="archiveHandler" :disabled="archiveData[listingPid] || archiveWaitingToBeReady !== undefined ? true : false">
                         <div class="text-weight-light" :class="loading.archive ? 'animate__animated animate__pulse animate__infinite' : ''">{{ loading.archive ? 'saving' : 'save' }}</div>
                     </v-btn>
                     <v-btn v-else variant="tonal" @click="resetHandler">save another</v-btn>
                 </div>
+                <email-signup type="daily" @signup="emailSignupHandler" :subscribed="subscribed" />
             </v-card-actions>
         </v-card>
         <v-card rounded="xl" class="pa-4 mt-2" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentDiscussions?.length">
@@ -140,6 +141,15 @@
             </v-card-text>
         </v-card>
         <v-spacer />
+        <v-dialog transition="dialog-bottom-transition" width="auto" :min-width="smAndDown ? '100%' : undefined" :max-width="smAndDown ? undefined : 700" v-model="dialogs.subscribed" @update:modelValue="store.confirmed = Date.now()">
+            <v-card rounded="xl" class="pa-4" style="opacity: 0.96">
+                <v-card-title class="font-weight-light text-center">Subscribed to Clippings Chronicles</v-card-title>
+                <v-card-subtitle class="font-weight-light text-center">Thank you for confirming!</v-card-subtitle>
+                <v-card-text class="text-body-1">
+                    We're excited to have you on board. Look forward to receiving our latest updates and offers in your inbox soon!
+                </v-card-text>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 <style scoped>
@@ -160,6 +170,7 @@ import humanizeDuration from 'humanize-duration'
 import IconBase from '@/components/IconBase.vue'
 import IconLogo from '@/components/IconLogo.vue'
 import SocialShare from '@/components/SocialShare.vue'
+import EmailSignup from '@/components/EmailSignup.vue'
 
 const { $api } = getCurrentInstance().appContext.config.globalProperties
 const intervals = ref({
@@ -181,6 +192,10 @@ const { VITE_API_SERVER } = import.meta.env
 const loading = ref({
     archive: false,
 })
+const dialogs = ref({
+    subscribed: false
+})
+const subscribed = ref(false)
 const mostRecentListings = ref([])
 const mostRecentDiscussions = ref([])
 const location = ref({})
@@ -229,6 +244,15 @@ function archiveHandler() {
     if (timeouts.value.archiveLoading[listingPid.value]) clearInterval(timeouts.value.archiveLoading[listingPid.value])
     timeouts.value.archiveLoading[listingPid.value] = setTimeout(() => loading.value.archive = false, 30000)
 }
+function emailSignupHandler() {
+    sio.emit('subscribe-daily', store.textFieldEmail, result => {
+        if (result instanceof Error) {
+            console.error(result)
+        } else {
+            subscribed.value = true
+        }
+    })
+}
 function resetHandler() {
     reset()
 }
@@ -247,6 +271,9 @@ onMounted(() => {
     if (!store.splashed) {
         store.splashed = new Date()
         window.location.pathname = '/home'
+    }
+    if (!store.confirmed && window.location.pathname === '/thanks') {
+        dialogs.value.subscribed = true
     }
     if (/\/share/.test(document.location.pathname)) {
         const url = new URLSearchParams(document.location.search).get('url') || new URLSearchParams(document.location.search).get('text')
