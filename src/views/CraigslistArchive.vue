@@ -12,7 +12,7 @@
             <social-share size="small" :density="smAndDown ? 'compact' : 'default'" :icon="smAndDown ? 'share' : undefined" />
             <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="help" :icon="smAndDown ? 'help' : undefined" href="https://blog.june07.com/clippings-frequently-asked-questions/" text="faq" />
             <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="toll" :icon="smAndDown ? 'toll' : undefined" href="https://blog.june07.com/donate" text="donate" />
-            <v-btn variant="text" size="x-small" :icon="store.theme === 'light' ? 'light_mode': 'dark_mode'" id="theme" @click="$emit('changeTheme')" />
+            <v-btn variant="text" size="x-small" :icon="store.theme === 'light' ? 'light_mode' : 'dark_mode'" id="theme" @click="$emit('changeTheme')" />
         </div>
         <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="location.pathname === '/home'">
             <p :class="smAndDown ? 'text-h5' : 'text-h4'" class="mb-8"><span class="font-weight-bold">Clippings</span><span class="font-italic"> is your modern-day archival tool for online classified ads...</span> like Craigslist!</p>
@@ -36,10 +36,11 @@
             <v-card-text class="font-weight-light">
                 <v-sheet rounded="xl" class="pa-4">
                     <div class="d-flex align-center" v-for="mostRecentListing of mostRecentListings">
-                        <social-share size="small" density="compact" icon="share" :url="`https://clippings-archive.june07.com/craigslist/${mostRecentListing.listingPid}`" color="amber-lighten-2" />
-                        <a style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentListing.listingPid}`" target="_blank" class="ml-1">
+                        <social-share size="small" density="compact" :icon="smAndDown ? 'share' : undefined" :url="getWebURL(mostRecentListing.listingPid)" color="amber-lighten-2" :text="smAndDown ? undefined : 'share'" />
+                        <v-btn variant="plain" size="small" density="compact" color="orange" :href="getCodeURL(mostRecentListing.listingPid)" target="_blank" class="mr-1" :prepend-icon="smAndDown ? undefined : 'code'" :icon="smAndDown ? 'code' : undefined" :text="smAndDown ? undefined : 'git'" />
+                        <a style="text-decoration: none" :href="getWebURL(mostRecentListing.listingPid)" target="_blank" class="ml-1">
                             <div class="text-caption text-truncate">
-                                <v-icon icon="link" class="mr-2" />{{ mostRecentListing.metadata?.title }}
+                                <v-icon icon="link" class="mr-2" color="green" />{{ mostRecentListing.metadata?.title }}
                             </div>
                         </a>
                     </div>
@@ -57,18 +58,20 @@
                     <p class="text-start mb-4">The data is saved to the cloud and will be accessible via the links below once they turn green:</p>
                     <v-row class="d-flex align-center">
                         <v-spacer />
-                        <v-col cols="2" class="text-end text-caption pb-0">web</v-col>
-                        <v-col :cols="smAndDown ? 10 : 9" class="text-start pb-0 pl-0">
-                            <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="`https://clippings-archive.june07.com/craigslist/${listingPid}`" target="_blank" :loading="archiveWaitingToBeReady">
-                                <div class="text-caption text-truncate">{{ `https://clippings-archive.june07.com/craigslist/${listingPid}` }}</div>
+                        <v-col :cols="3" class="text-end text-caption pb-0">
+                            <v-icon icon="language" color="blue" class="mr-1" />web
+                        </v-col>
+                        <v-col :cols="9" class="text-start pb-0 pl-0">
+                            <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="getWebURL(listingPid)" target="_blank" :loading="archiveWaitingToBeReady">
+                                <div class="text-caption text-truncate">{{ getWebURL(listingPid) }}</div>
                                 <template v-slot:loader>
                                     <v-progress-circular color="amber" size="x-small" width="1" class="mr-2" indeterminate />
-                                    <div class="text-caption text-truncate">{{ `https://clippings-archive.june07.com/craigslist/${listingPid}` }}</div>
+                                    <div class="text-caption text-truncate">{{ getWebURL(listingPid) }}</div>
                                 </template>
                             </v-btn>
-                            <a v-else style="text-decoration: none" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="`https://clippings-archive.june07.com/craigslist/${listingPid}`" target="_blank">
+                            <a v-else style="text-decoration: none" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="getWebURL(listingPid)" target="_blank">
                                 <div class="text-caption text-truncate" :class="archiveWaitingToBeReady ? 'text-grey-lighten-2' : 'text-green'">
-                                    <v-icon icon="link" class="mr-2" />{{ `https://clippings-archive.june07.com/craigslist/${listingPid}` }}
+                                    <v-icon icon="link" class="mr-2" />{{ getWebURL(listingPid) }}
                                 </div>
                             </a>
                         </v-col>
@@ -76,18 +79,20 @@
                     </v-row>
                     <v-row class="d-flex align-center">
                         <v-spacer />
-                        <v-col cols="2" class="text-end text-caption py-0">git</v-col>
-                        <v-col :cols="smAndDown ? 10 : 9" class="text-start py-0 pl-0">
-                            <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="`https://github.com/june07/clippings-archive/tree/main/craigslist/${listingPid}`" target="_blank" :loading="archiveWaitingToBeReady">
-                                <div class="text-caption text-truncate">{{ `https://github.com/june07/clippings-archive/tree/main/craigslist/${listingPid}` }}</div>
+                        <v-col :cols="3" class="text-end text-caption py-0">
+                            <v-icon icon="code" color="orange" class="mr-1" />git
+                        </v-col>
+                        <v-col :cols="9" class="text-start py-0 pl-0">
+                            <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" color="green" :href="getCodeURL(listingPid)" target="_blank">
+                                <div class="text-caption text-truncate">{{ getCodeURL(listingPid) }}</div>
                                 <template v-slot:loader>
                                     <v-progress-circular color="amber" size="x-small" width="1" class="mr-2" indeterminate />
-                                    <div class="text-caption text-truncate">{{ `https://github.com/june07/clippings-archive/tree/main/craigslist/${listingPid}` }}</div>
+                                    <div class="text-caption text-truncate">{{ getCodeURL(listingPid) }}</div>
                                 </template>
                             </v-btn>
-                            <a v-else style="text-decoration: none" :href="`https://github.com/june07/clippings-archive/tree/main/craigslist/${listingPid}`" target="_blank">
-                                <div class="text-caption text-truncate" :class="archiveWaitingToBeReady ? 'text-grey-lighten-2' : 'text-green'">
-                                    <v-icon icon="link" class="mr-2" />{{ `https://github.com/june07/clippings-archive/tree/main/craigslist/${listingPid}` }}
+                            <a v-else style="text-decoration: none" :href="getCodeURL(listingPid)" target="_blank">
+                                <div class="text-caption text-truncate text-green">
+                                    <v-icon icon="link" class="mr-2" />{{ getCodeURL(listingPid) }}
                                 </div>
                             </a>
                         </v-col>
@@ -118,7 +123,7 @@
                         <v-list-item density="compact" v-for="mostRecentDiscussion of mostRecentDiscussions" :prepend-avatar="mostRecentDiscussion.comments.nodes?.[0]?.author?.avatarUrl">
                             <v-tooltip>
                                 <template v-slot:activator="{ props }">
-                                    <a v-bind="props" style="text-decoration: none" :href="`https://clippings-archive.june07.com/craigslist/${mostRecentDiscussion.title}`">
+                                    <a v-bind="props" style="text-decoration: none" :href="getWebURL(mostRecentDiscussion.title)">
                                         {{ mostRecentDiscussion.comments.nodes[0]?.body }}
                                     </a>
                                 </template>
@@ -210,6 +215,8 @@ const sio = io(VITE_API_SERVER + '/', {
     })
 const pidFromUrl = (url) => url && url.match(/\/([^\/]*)\.html/)?.[1]
 const shortenAdURL = (url) => url && url.match(/https?:\/\/[^/]*(.*)/)?.[1] ? `...${url.match(/https?:\/\/[^/]*(.*)/)[1]}` : ''
+const getCodeURL = (pid) => pid && `https://github.com/june07/clippings-archive/tree/main/craigslist/${pid}`
+const getWebURL = (pid) => pid && `https://clippings-archive.june07.com/craigslist/${pid}`
 function archiveHandler() {
     if (!listingPid.value || !/https:\/\/.*\.craigslist\.org\/.+/.test(store.textField)) return
     loading.value.archive = true
@@ -277,7 +284,7 @@ onMounted(() => {
         })
         .on('update', payload => {
             const { archived } = payload
-            const { gitUrl, listingPid } = archived
+            const { listingPid } = archived
 
             archiveData.value[listingPid] = archived
             loading.value.archive = false
@@ -285,10 +292,13 @@ onMounted(() => {
 
             intervals.value.checkArchiveLinkActive = setInterval(async () => {
                 try {
-                    const response = await fetch(gitUrl)
+                    const response = await fetch(getWebURL(listingPid))
                     if (response.status == 200) {
-                        clearInterval(intervals.value.checkArchiveLinkActive)
                         archiveWaitingToBeReady.value = false
+                        /** can't wait on the opaque response because we have no idea what the response code is so just clear the interval
+                         * and assume if the web link is ready then the git link should be, particularly since the code was pushed.
+                        */
+                        clearInterval(intervals.value.checkArchiveLinkActive)
                     }
                 } catch (error) {
                     error
