@@ -118,17 +118,22 @@
         <v-card rounded="xl" class="pa-4 mt-2" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentDiscussions?.length">
             <v-card-title class="font-weight-light text-center text-amber">Most recent ad comments 💬</v-card-title>
             <v-card-text class="font-weight-light">
-                <v-list>
+                <v-list lines="two">
                     <v-sheet rounded="xl" :color="store.theme === 'light' ? 'amber-lighten-5' : 'amber-lighten-1'" class="py-2">
                         <v-list-item density="compact" v-for="mostRecentDiscussion of mostRecentDiscussions" :prepend-avatar="mostRecentDiscussion.comments.nodes?.[0]?.author?.avatarUrl">
-                            <v-tooltip>
-                                <template v-slot:activator="{ props }">
-                                    <a v-bind="props" style="text-decoration: none" :href="getWebURL(mostRecentDiscussion.title)">
-                                        {{ mostRecentDiscussion.comments.nodes[0]?.body }}
-                                    </a>
-                                </template>
-                                <div>{{ humanizeDuration(Date.now() - Date.parse(mostRecentDiscussion.createdAt), { units: ['h', 'm'], round: true }) }} ago</div>
-                            </v-tooltip>
+                            <template v-slot:title>
+                                <v-tooltip>
+                                    <template v-slot:activator="{ props }">
+                                        <a v-bind="props" style="text-decoration: none" :href="getWebURL(mostRecentDiscussion.title)">
+                                            {{ mostRecentDiscussion.comments.nodes[0]?.body }}
+                                        </a>
+                                    </template>
+                                    <div>{{ humanizeDuration(Date.now() - Date.parse(mostRecentDiscussion.createdAt), { units: ['h', 'm'], round: true }) }} ago</div>
+                                </v-tooltip>
+                            </template>
+                            <template v-slot:subtitle>
+                                <span class="text-caption">{{ mostRecentDiscussion.url }}</span>
+                            </template>
                         </v-list-item>
                     </v-sheet>
                 </v-list>
