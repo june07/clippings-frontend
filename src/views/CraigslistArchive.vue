@@ -59,8 +59,10 @@
                     <p class="text-start mb-4">The data is saved to the cloud and will be accessible via the links below once they turn green:</p>
                     <v-row class="d-flex align-center">
                         <v-spacer />
-                        <v-col :cols="3" class="text-end text-caption pb-0">
-                            <v-icon icon="language" color="blue" class="mr-1" />web
+                        <v-col :cols="3" class="d-flex justify-end text-caption pb-0">
+                            <v-icon icon="language" color="blue" class="mr-1" />
+                            <div class="text-end" style="width: 25px" v-if="!smAndDown || (smAndDown && !archiveWaitingToBeReady)">web</div>
+                            <v-progress-circular class="justify-self-end" style="width: 25px" v-else-if="smAndDown && archiveWaitingToBeReady" color="amber" size="x-small" width="1" indeterminate />
                         </v-col>
                         <v-col :cols="9" class="text-start pb-0 pl-0">
                             <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="getWebURL(listingPid)" target="_blank" :loading="archiveWaitingToBeReady">
@@ -80,8 +82,9 @@
                     </v-row>
                     <v-row class="d-flex align-center">
                         <v-spacer />
-                        <v-col :cols="3" class="text-end text-caption py-0">
-                            <v-icon icon="code" color="orange" class="mr-1" />git
+                        <v-col :cols="3" class="d-flex justify-end text-caption py-0">
+                            <v-icon icon="code" color="orange" class="mr-1" />
+                            <div class="text-end" style="width: 25px">git</div>
                         </v-col>
                         <v-col :cols="9" class="text-start py-0 pl-0">
                             <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" color="green" :href="getCodeURL(listingPid)" target="_blank">

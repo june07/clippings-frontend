@@ -24,3 +24,4 @@ pnpm-debug.log*
 *:Zone.Identifier
 screenshot.png
 dev-dist/sw.js
+dev-dist/sw.js
