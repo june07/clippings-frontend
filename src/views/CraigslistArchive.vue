@@ -23,8 +23,9 @@
                     <li>No fussing with screenshots or storing files on your own device</li>
                     <li>100% open source (Vue.js <a href="https://github.com/june07/clippings-frontend" rel="noopener" target="_blank">frontend</a>,
                         Node.js <a href="https://github.com/june07/clippings-backend" rel="noopener" target="_blank">backend</a>,
-                        <a href="https://github.com/june07/clippings-archive" rel="noopener" target="_blank">archive</a>)
+                        and <a href="https://github.com/june07/clippings-archive" rel="noopener" target="_blank">archive</a>)
                     </li>
+                    <li>Read more about Clippings on <a href="https://news.ycombinator.com/item?id=37860172" rel="noopener" target="_blank">Hacker News</a></li>
                 </ul>
             </div>
             <p :class="smAndDown ? 'text-body-2' : 'text-body-1'" class="mb-8">
