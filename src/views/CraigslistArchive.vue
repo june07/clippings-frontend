@@ -46,22 +46,40 @@
                     <p class="text-start mb-4">The data is saved to the cloud and will be accessible via the links below once they turn green:</p>
                     <v-row class="d-flex align-center">
                         <v-spacer />
-                        <v-col :cols="3" class="d-flex justify-end text-caption pb-0">
+                        <v-col :cols="3" class="d-flex justify-end text-caption py-0">
+                            <v-icon icon="language" color="amber" class="mr-1" />
+                            <div class="text-end" style="width: 25px">web</div>
+                        </v-col>
+                        <v-col :cols="9" class="text-start py-0 pl-0">
+                            <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" color="green" :href="getWebURL(listingPid)">
+                                <div class="text-caption text-truncate">{{ getWebURL(listingPid) }}</div>
+                            </v-btn>
+                            <a v-else style="text-decoration: none" :href="getWebURL(listingPid)">
+                                <div class="text-caption text-truncate text-green">
+                                    <v-icon icon="link" class="mr-2" />{{ getWebURL(listingPid) }}
+                                </div>
+                            </a>
+                        </v-col>
+                        <v-spacer />
+                    </v-row>
+                    <v-row class="d-flex align-center">
+                        <v-spacer />
+                        <v-col :cols="3" class="d-flex justify-end text-caption py-0">
                             <v-icon icon="language" color="blue" class="mr-1" />
                             <div class="text-end" style="width: 25px" v-if="!smAndDown || (smAndDown && !archiveWaitingToBeReady)">web</div>
                             <v-progress-circular class="justify-self-end" style="width: 25px" v-else-if="smAndDown && archiveWaitingToBeReady" color="amber" size="x-small" width="1" indeterminate />
                         </v-col>
-                        <v-col :cols="9" class="text-start pb-0 pl-0">
-                            <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="getWebURL(listingPid)" target="_blank" :loading="archiveWaitingToBeReady">
-                                <div class="text-caption text-truncate">{{ getWebURL(listingPid) }}</div>
+                        <v-col :cols="9" class="text-start py-0 pl-0">
+                            <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="getArchiveURL(listingPid)" target="_blank" :loading="archiveWaitingToBeReady">
+                                <div class="text-caption text-truncate">{{ getArchiveURL(listingPid) }}</div>
                                 <template v-slot:loader>
                                     <v-progress-circular color="amber" size="x-small" width="1" class="mr-2" indeterminate />
-                                    <div class="text-caption text-truncate">{{ getWebURL(listingPid) }}</div>
+                                    <div class="text-caption text-truncate">{{ getArchiveURL(listingPid) }}</div>
                                 </template>
                             </v-btn>
-                            <a v-else style="text-decoration: none" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="getWebURL(listingPid)" target="_blank">
+                            <a v-else style="text-decoration: none" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="getArchiveURL(listingPid)" target="_blank">
                                 <div class="text-caption text-truncate" :class="archiveWaitingToBeReady ? 'text-grey-lighten-2' : 'text-green'">
-                                    <v-icon icon="link" class="mr-2" />{{ getWebURL(listingPid) }}
+                                    <v-icon icon="link" class="mr-2" />{{ getArchiveURL(listingPid) }}
                                 </div>
                             </a>
                         </v-col>
@@ -227,6 +245,7 @@ const pidFromUrl = (url) => url && url.match(/\/([^\/]*)\.html/)?.[1]
 const shortenAdURL = (url) => url && url.match(/https?:\/\/[^/]*(.*)/)?.[1] ? `...${url.match(/https?:\/\/[^/]*(.*)/)[1]}` : ''
 const getCodeURL = (pid) => pid && `https://github.com/june07/clippings-archive/tree/main/craigslist/${pid}`
 const getWebURL = (pid) => pid && `${location.value.origin}/archive/cl/${pid}`
+const getArchiveURL = (pid) => pid && `https://clippings-archive.june07.com/craigslist/${pid}`
 function archiveHandler() {
     if (!listingPid.value || !/https:\/\/.*\.craigslist\.org\/.+/.test(store.textField)) return
     loading.value.archive = true
@@ -313,7 +332,7 @@ onMounted(() => {
 
             intervals.value.checkArchiveLinkActive = setInterval(async () => {
                 try {
-                    const response = await fetch(getWebURL(listingPid))
+                    const response = await fetch(getArchiveURL(listingPid))
                     if (response.status == 200) {
                         archiveWaitingToBeReady.value = false
                         /** can't wait on the opaque response because we have no idea what the response code is so just clear the interval
