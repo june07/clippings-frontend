@@ -1,19 +1,6 @@
 <template>
     <v-container class="h-100 d-flex align-center justify-center flex-column" fluid>
-        <div class="d-flex align-center" :style="smAndDown ? 'width: -webkit-fill-available' : 'width: 800px'">
-            <div class="d-flex align-center justify-start">
-                <icon-base><icon-logo iconColor="white" /></icon-base>
-                <span v-if="!smAndDown"><span class="font-weight-bold ml-2 mr-1">Clippings</span><span class="mr-2 font-weight-thin font-italic">by June07</span></span>
-                <v-btn variant="text" size="small" prepend-icon="home" href="/home" v-if="location.pathname !== '/home'">home</v-btn>
-            </div>
-            <v-spacer />
-            <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="email" :icon="smAndDown ? 'email' : undefined" href="mailto://support@june07.com" text="email" />
-            <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="web" :icon="smAndDown ? 'web' : undefined" href="https://june07.com" text="blog" />
-            <social-share size="small" :density="smAndDown ? 'compact' : 'default'" :icon="smAndDown ? 'share' : undefined" />
-            <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="help" :icon="smAndDown ? 'help' : undefined" href="https://blog.june07.com/clippings-frequently-asked-questions/" text="faq" />
-            <v-btn variant="text" size="small" :density="smAndDown ? 'compact' : 'default'" prepend-icon="toll" :icon="smAndDown ? 'toll' : undefined" href="https://blog.june07.com/donate" text="donate" />
-            <v-btn variant="text" size="x-small" :icon="store.theme === 'light' ? 'light_mode' : 'dark_mode'" id="theme" @click="$emit('changeTheme')" />
-        </div>
+        <nav-header @changeTheme="$emit('changeTheme')" v-model="location" />
         <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="location.pathname === '/home'">
             <p :class="smAndDown ? 'text-h5' : 'text-h4'" class="mb-8"><span class="font-weight-bold">Clippings</span><span class="font-italic"> is your modern-day archival tool for online classified ads...</span> like Craigslist!</p>
             <p :class="smAndDown ? 'text-body-2' : 'text-body-1'">Clippings is your modern-day archival tool for online classified ads, reminiscent of the days when we used to clip newspaper ads. It captures and securely stores ad snapshots in the cloud, ensuring they're always accessible—even if the original poster or anyone else removes them.</p>
@@ -39,7 +26,7 @@
                     <div class="d-flex align-center" v-for="mostRecentListing of mostRecentListings">
                         <social-share size="small" density="compact" :icon="smAndDown ? 'share' : undefined" :url="getWebURL(mostRecentListing.listingPid)" color="amber-lighten-2" :text="smAndDown ? undefined : 'share'" />
                         <v-btn variant="plain" size="small" density="compact" color="orange" :href="getCodeURL(mostRecentListing.listingPid)" target="_blank" class="mr-1" :prepend-icon="smAndDown ? undefined : 'code'" :icon="smAndDown ? 'code' : undefined" :text="smAndDown ? undefined : 'git'" />
-                        <a style="text-decoration: none" :href="getWebURL(mostRecentListing.listingPid)" target="_blank" class="ml-1">
+                        <a style="text-decoration: none" :href="getWebURL(mostRecentListing.listingPid)" class="ml-1">
                             <div class="text-caption text-truncate">
                                 <v-icon icon="link" class="mr-2" color="green" />{{ mostRecentListing.metadata?.title }}
                             </div>
@@ -171,10 +158,9 @@ import cookie from 'cookie'
 import 'animate.css'
 import humanizeDuration from 'humanize-duration'
 
-import IconBase from '@/components/IconBase.vue'
-import IconLogo from '@/components/IconLogo.vue'
 import SocialShare from '@/components/SocialShare.vue'
 import EmailSignup from '@/components/EmailSignup.vue'
+import NavHeader from '@/components/NavHeader.vue'
 
 const { $api } = getCurrentInstance().appContext.config.globalProperties
 const intervals = ref({
@@ -240,7 +226,7 @@ const sio = io(VITE_API_SERVER + '/', {
 const pidFromUrl = (url) => url && url.match(/\/([^\/]*)\.html/)?.[1]
 const shortenAdURL = (url) => url && url.match(/https?:\/\/[^/]*(.*)/)?.[1] ? `...${url.match(/https?:\/\/[^/]*(.*)/)[1]}` : ''
 const getCodeURL = (pid) => pid && `https://github.com/june07/clippings-archive/tree/main/craigslist/${pid}`
-const getWebURL = (pid) => pid && `https://clippings-archive.june07.com/craigslist/${pid}`
+const getWebURL = (pid) => pid && `${location.value.origin}/archive/cl/${pid}`
 function archiveHandler() {
     if (!listingPid.value || !/https:\/\/.*\.craigslist\.org\/.+/.test(store.textField)) return
     loading.value.archive = true
@@ -271,17 +257,16 @@ watch(() => store.textField, (newValue, oldValue) => {
     })
 })
 onMounted(() => {
-    location.value = document.location
     if (!store.splashed) {
         store.splashed = new Date()
-        window.location.pathname = '/home'
+        location.value.pathname = '/home'
     }
-    if (!store.confirmed && window.location.pathname === '/thanks') {
+    if (!store.confirmed && location.value.pathname === '/thanks') {
         dialogs.value.subscribed = true
     }
-    if (/\/share/.test(document.location.pathname)) {
-        const url = new URLSearchParams(document.location.search).get('url') || new URLSearchParams(document.location.search).get('text')
-        const title = new URLSearchParams(document.location.search).get('title')
+    if (/\/share/.test(location.value.pathname)) {
+        const url = new URLSearchParams(location.value.search).get('url') || new URLSearchParams(location.value.search).get('text')
+        const title = new URLSearchParams(location.value.search).get('title')
         if (/https:\/\/.*\.craigslist\.org\/.+/.test(url)) {
             store.textField = url
         }
@@ -298,7 +283,7 @@ onMounted(() => {
         sio.connect()
     }
     sio.on('connect', () => {
-        if (/\/share/.test(document.location.pathname) && store.textField) {
+        if (/\/share/.test(location.value.pathname) && store.textField) {
             archiveHandler()
         } else if (listingPid.value) {
             sio.emit('getArchive', listingPid.value, archive => {

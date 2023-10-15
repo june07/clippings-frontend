@@ -6,7 +6,8 @@
             </div>
         </v-navigation-drawer>
         <v-main>
-            <craigslist-archive @change-theme="themeHandler" />
+            <craigslist-archive v-if="!/^\/archive\/cl\//.test(location?.pathname)" @change-theme="themeHandler" />
+            <craigslist-archived-ad v-else @change-theme="themeHandler" />
         </v-main>
         <v-navigation-drawer v-if="!smAndDown" order="2" width="200" floating location="right">
             <div class="h-100 d-flex align-center">
@@ -29,11 +30,12 @@
     </v-app>
 </template>
 <script setup>
-import { ref, getCurrentInstance } from 'vue'
+import { ref, getCurrentInstance, onMounted } from 'vue'
 import { useAppStore } from '@/store/app'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 
 import CraigslistArchive from '@/views/CraigslistArchive.vue'
+import CraigslistArchivedAd from '@/views/CraigslistArchivedAd.vue'
 
 const { smAndDown } = useDisplay()
 const store = useAppStore()
@@ -44,6 +46,7 @@ const lastBuild = ref()
 const showCredits = ref(false)
 const versionCheckIntervalId = ref()
 const buildInfo = ref()
+const location = ref()
 
 const checkVersion = async () => {
     buildInfo.value = await $api.buildInfo()
@@ -73,4 +76,7 @@ function themeHandler() {
 checkVersion()
 
 versionCheckIntervalId.value = setInterval(checkVersion, 60000)
+onMounted(() => {
+    location.value = window.location
+})
 </script>
