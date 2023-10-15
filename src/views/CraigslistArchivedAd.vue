@@ -11,18 +11,18 @@
                     <v-col>
                         <div class="my-2 text-overline">Raw Links</div>
                         <ul>
-                            <li><a :href="`${archiveData.listingPid}.html`">{{ `${archiveData.listingPid}.html` }}</a></li>
-                            <li v-for="image of archiveData.imageUrls"><a :href="image">{{ image }}</a></li>
+                            <li><a :href="`${getArchiveURL(archiveData.listingPid)}/${archiveData.listingPid}.html`">{{ `${archiveData.listingPid}.html` }}</a></li>
+                            <li v-for="image of archiveData.imageUrls"><a :href="`${getArchiveURL(archiveData.listingPid)}/${image.split('/').pop()}`">{{ image.split('/').pop() }}</a></li>
                         </ul>
                         <div class="my-2 text-overline">Gallery</div>
                         <lightgallery :settings="{ speed: 500, plugins: plugins }">
-                            <a v-for="image of archiveData.imageUrls" :href="image" class="mr-1"><img height="150" width="150" :src="image" style="border-radius: 12px;" /></a>
+                            <a v-for="image of archiveData.imageUrls" :href="`${getArchiveURL(archiveData.listingPid)}/${image.split('/').pop()}`" class="mr-1"><img height="150" width="150" :src="`${getArchiveURL(archiveData.listingPid)}/${image.split('/').pop()}`" style="border-radius: 12px;" /></a>
                         </lightgallery>
                     </v-col>
                     <v-col>
                         <div class="my-2 text-overline">Craigslist Snapshot</div>
                         <div class="iframe-wrapper" style="height: 500px">
-                            <iframe :src="getArchiveURL(archiveData.listingPid)" style="
+                            <iframe :src="`${getArchiveURL(archiveData.listingPid)}/${archiveData.listingPid}.html`" style="
                                 width: 100%;
                                 height: 100%;
                                 border: none;
@@ -39,7 +39,7 @@
                 </v-row>
             </v-card-text>
         </v-card>
-        <Giscus v-if="archiveData" class="giscus" repo="june07/jc-comments" repo-id="R_kgDOKZ-3jA" category="Announcements" category-id="DIC_kwDOKZ-3jM4CZvZb" mapping="specific" :term="archiveData.listingPid" strict="0" reactions-enabled="1" emit-metadata="1" input-position="bottom" theme="preferred_color_scheme" lang="en" />
+        <Giscus v-if="archiveData" class="giscus" repo="june07/clippings-comments" repo-id="R_kgDOKZ-3jA" category="Announcements" category-id="DIC_kwDOKZ-3jM4CZvZb" mapping="specific" :term="archiveData.listingPid" strict="0" reactions-enabled="1" emit-metadata="1" input-position="bottom" theme="preferred_color_scheme" lang="en" />
         <v-spacer />
     </v-container>
 </template>
@@ -78,7 +78,7 @@ const sio = io(VITE_API_SERVER + '/', {
     console.log(reason)
 })
 const pid = computed(() => location.value.pathname?.split('/')?.[3])
-const getArchiveURL = (pid) => pid && `https://clippings-archive.june07.com/craigslist/${pid}/${pid}.html`
+const getArchiveURL = (pid) => pid && `https://clippings-archive.june07.com/craigslist/${pid}`
 onMounted(() => {
     if (!store.sessionId) {
         (async () => {
