@@ -48,7 +48,7 @@
                         <v-spacer />
                         <v-col :cols="3" class="d-flex justify-end text-caption py-0">
                             <v-icon icon="language" color="amber" class="mr-1" />
-                            <div class="text-end" style="width: 25px">web</div>
+                            <div class="text-end" style="width: 30px">web</div>
                         </v-col>
                         <v-col :cols="9" class="text-start py-0 pl-0">
                             <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" color="green" :href="getWebURL(listingPid)">
@@ -66,8 +66,8 @@
                         <v-spacer />
                         <v-col :cols="3" class="d-flex justify-end text-caption py-0">
                             <v-icon icon="language" color="blue" class="mr-1" />
-                            <div class="text-end" style="width: 25px" v-if="!smAndDown || (smAndDown && !archiveWaitingToBeReady)">web</div>
-                            <v-progress-circular class="justify-self-end" style="width: 25px" v-else-if="smAndDown && archiveWaitingToBeReady" color="amber" size="x-small" width="1" indeterminate />
+                            <div class="text-end" style="width: 30px" v-if="!smAndDown || (smAndDown && !archiveWaitingToBeReady)">web</div>
+                            <v-progress-circular class="justify-self-end" style="width: 30px" v-else-if="smAndDown && archiveWaitingToBeReady" color="amber" size="x-small" width="1" indeterminate />
                         </v-col>
                         <v-col :cols="9" class="text-start py-0 pl-0">
                             <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" :color="archiveWaitingToBeReady ? 'grey-lighten-2' : 'green'" :href="getArchiveURL(listingPid)" target="_blank" :loading="archiveWaitingToBeReady">
@@ -89,7 +89,7 @@
                         <v-spacer />
                         <v-col :cols="3" class="d-flex justify-end text-caption py-0">
                             <v-icon icon="code" color="orange" class="mr-1" />
-                            <div class="text-end" style="width: 25px">git</div>
+                            <div class="text-end" style="width: 30px">git</div>
                         </v-col>
                         <v-col :cols="9" class="text-start py-0 pl-0">
                             <v-btn v-if="!smAndDown" density="compact" variant="text" prepend-icon="link" color="green" :href="getCodeURL(listingPid)" target="_blank">
