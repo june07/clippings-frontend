@@ -19,16 +19,20 @@
             </p>
         </v-card>
         <v-spacer />
-        <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentListings?.length">
+        <v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentListings?.length" :class="smAndDown ? 'pl-0' : ''">
             <v-card-title class="font-weight-light text-center">Most recently archived ads 🆕</v-card-title>
-            <v-card-text class="font-weight-light">
-                <v-sheet rounded="xl" class="pa-4">
+            <v-card-text class="font-weight-light" :class="smAndDown ? 'pl-0' : ''">
+                <v-sheet rounded="xl" class="pa-4" :class="smAndDown ? 'pl-0' : ''">
                     <div class="d-flex align-center" v-for="mostRecentListing of mostRecentListings">
                         <social-share size="small" density="compact" :icon="smAndDown ? 'share' : undefined" :url="getWebURL(mostRecentListing.listingPid)" color="amber-lighten-2" :text="smAndDown ? undefined : 'share'" />
-                        <v-btn variant="plain" size="small" density="compact" color="orange" :href="getCodeURL(mostRecentListing.listingPid)" target="_blank" class="mr-1" :prepend-icon="smAndDown ? undefined : 'code'" :icon="smAndDown ? 'code' : undefined" :text="smAndDown ? undefined : 'git'" />
-                        <a style="text-decoration: none" :href="getWebURL(mostRecentListing.listingPid)" class="ml-1">
+                        
+                        <v-btn variant="plain" size="small" density="compact" color="orange" :href="getCodeURL(mostRecentListing.listingPid)" target="_blank" class="pl-0" :prepend-icon="smAndDown ? undefined : 'code'" :icon="smAndDown ? 'code' : undefined" :text="smAndDown ? undefined : 'git'" />
+                        
+                        <v-btn variant="plain" size="small" density="compact" color="blue" :href="getArchiveURL(mostRecentListing.listingPid)" target="_blank" class="pl-0" :prepend-icon="smAndDown ? undefined : 'link'" :icon="smAndDown ? 'link' : undefined" :text="smAndDown ? undefined : 'static'" />
+
+                        <a style="text-decoration: none" :href="getWebURL(mostRecentListing.listingPid)" class="pl-0">
                             <div class="text-caption text-truncate">
-                                <v-icon icon="link" class="mr-2" color="green" />{{ mostRecentListing.metadata?.title }}
+                                <v-icon icon="web" class="mr-2" color="green" />{{ mostRecentListing.metadata?.title }}
                             </div>
                         </a>
                     </div>
