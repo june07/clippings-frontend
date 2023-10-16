@@ -10,7 +10,12 @@ export const useAppStore = defineStore("app", {
         subscribed: {
             daily: undefined
         },
-        confirmed: undefined
+        confirmed: undefined,
+        banners: {
+            share: {
+                disabled: false
+            }
+        }
     }),
     persist: true,
 })

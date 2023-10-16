@@ -15,6 +15,20 @@
                     <li>Read more about Clippings on <a href="https://news.ycombinator.com/item?id=37860172" rel="noopener" target="_blank">Hacker News</a></li>
                 </ul>
             </div>
+            <v-banner v-if="!store.banners.share.disabled" :lines="smAndDown ? 'three' : 'two'" color="info" icon="info" class="mt-4 mx-auto" :class="smAndDown ? 'pa-4' : 'px-4'" elevation="12" rounded="xl" :max-width="smAndDown ? undefined : '70%'">
+                <template v-slot:prepend>
+                    <social-share v-if="smAndDown" size="50" :density="smAndDown ? 'compact' : 'default'" :icon="smAndDown ? 'share' : undefined" :url="location.href" color="amber" />
+                    <v-icon v-else icon="info" color="info" size="50" />
+                </template>
+                <template v-slot:text>
+                    <span :class="smAndDown ? 'text-body-2' : ''">🚀 Help Us Grow! Please Share Clippings with Your Social Network 🌟</span>
+                    <social-share v-if="!smAndDown" size="small" :density="smAndDown ? 'compact' : 'default'" :icon="smAndDown ? 'share' : undefined" :url="location.href" color="amber" />
+                </template>
+
+                <template v-slot:actions v-if="!smAndDown">
+                    <v-btn @click="store.banners.share.disabled = true" icon="close" size="x-small" />
+                </template>
+            </v-banner>
             <p :class="smAndDown ? 'text-body-2' : 'text-body-1'" class="mb-8">
             </p>
         </v-card>
@@ -25,9 +39,9 @@
                 <v-sheet rounded="xl" class="pa-4" :class="smAndDown ? 'pl-0' : ''">
                     <div class="d-flex align-center" v-for="mostRecentListing of mostRecentListings">
                         <social-share size="small" density="compact" :icon="smAndDown ? 'share' : undefined" :url="getWebURL(mostRecentListing.listingPid)" color="amber-lighten-2" :text="smAndDown ? undefined : 'share'" />
-                        
+
                         <v-btn variant="plain" size="small" density="compact" color="orange" :href="getCodeURL(mostRecentListing.listingPid)" target="_blank" class="pl-0" :prepend-icon="smAndDown ? undefined : 'code'" :icon="smAndDown ? 'code' : undefined" :text="smAndDown ? undefined : 'git'" />
-                        
+
                         <v-btn variant="plain" size="small" density="compact" color="blue" :href="getArchiveURL(mostRecentListing.listingPid)" target="_blank" class="pl-0" :prepend-icon="smAndDown ? undefined : 'link'" :icon="smAndDown ? 'link' : undefined" :text="smAndDown ? undefined : 'static'" />
 
                         <a style="text-decoration: none" :href="getWebURL(mostRecentListing.listingPid)" class="pl-0">
@@ -169,6 +183,18 @@
 :deep() .v-text-field .v-field--no-label input,
 .v-text-field .v-field--active input {
     padding: 0 8px 0 8px;
+}
+
+:deep() .v-banner-text {
+    padding-right: 0 !important;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+:deep() .v-banner__prepend {
+    margin-right: 0;
+    margin-top: auto;
+    margin-bottom: auto;
 }
 </style>
 <script setup>
