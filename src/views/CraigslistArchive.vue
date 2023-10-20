@@ -243,6 +243,7 @@ import NavHeader from '@/components/NavHeader.vue'
 import EmergencySetupDialog from '@/components/EmergencySetupDialog.vue'
 import EmergencyAlertDialog from '@/components/EmergencyAlertDialog.vue'
 
+const emit = defineEmits(['error'])
 const { $api } = getCurrentInstance().appContext.config.globalProperties
 const intervals = ref({
     default: undefined,
@@ -317,7 +318,11 @@ const sio = io(VITE_API_SERVER + '/', {
         }
     })
     .on('connect_error', (error) => {
-        console.log('CALLBACK ERROR: ' + error)
+        if (/no matching session/.test(error.message)) {
+            emit('error', error.message)
+        } else {
+            console.log('CALLBACK ERROR: ' + error)
+        }
     })
     .on('error', reason => {
         console.log(reason)
