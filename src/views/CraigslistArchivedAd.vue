@@ -1,14 +1,14 @@
 <template>
     <v-container class="h-100 d-flex align-center justify-center flex-column" fluid>
         <nav-header @changeTheme="$emit('changeTheme')" v-model="location" />
-        <v-card v-if="archiveData" rounded="xl" class="pa-4 mt-2" :elevation="0">
+        <v-card v-if="archiveData" rounded="xl" class="mt-2" :class="smAndDown ? 'pa-0' : 'pa-4'" :elevation="0" :width="smAndDown ? '-webkit-fill-available' : '800px'">
             <v-card-title>
-                <span class="font-weight-bold">Archived content listing of <span style="font-stretch: ultra-condensed">{{ archiveData.listingURL }}</span></span>
+                <span class="font-weight-bold">Archived content listing of <span v-if="!smAndDown" style="font-stretch: ultra-condensed">{{ archiveData.listingURL }}</span></span>
             </v-card-title>
-            <v-card-subtitle></v-card-subtitle>
+            <v-card-subtitle><span style="text-wrap: pretty">{{ archiveData.listingURL }}</span></v-card-subtitle>
             <v-card-text>
                 <v-row>
-                    <v-col>
+                    <v-col :cols="smAndDown ? 12 : 6">
                         <div class="my-2 text-overline">Raw Links</div>
                         <ul>
                             <li><a :href="`${getArchiveURL(archiveData.listingPid)}/${archiveData.listingPid}.html`">{{ `${archiveData.listingPid}.html` }}</a></li>
@@ -19,7 +19,7 @@
                             <a v-for="image of archiveData.imageUrls" :href="`${getArchiveURL(archiveData.listingPid)}/${image.split('/').pop()}`" class="mr-1"><img height="150" width="150" :src="`${getArchiveURL(archiveData.listingPid)}/${image.split('/').pop()}`" style="border-radius: 12px;" /></a>
                         </lightgallery>
                     </v-col>
-                    <v-col>
+                    <v-col :cols="smAndDown ? 12 : 6">
                         <div class="my-2 text-overline">Craigslist Snapshot</div>
                         <div class="iframe-wrapper" style="height: 500px">
                             <iframe :src="`${getArchiveURL(archiveData.listingPid)}/${archiveData.listingPid}.html`" style="
@@ -76,6 +76,14 @@ const sio = io(VITE_API_SERVER + '/', {
     console.log('CALLBACK ERROR: ' + error)
 }).on('error', reason => {
     console.log(reason)
+}).on('connect', () => {
+    if (pid.value) {
+        sio.emit('getArchive', pid.value, archive => {
+            if (archive) {
+                archiveData.value = JSON.parse(archive)
+            }
+        })
+    }
 })
 const pid = computed(() => location.value.pathname?.split('/')?.[3])
 const getArchiveURL = (pid) => pid && `https://clippings-archive.june07.com/craigslist/${pid}`
@@ -91,14 +99,5 @@ onMounted(() => {
         sio.auth = { sessionId: store.sessionId }
         sio.connect()
     }
-    sio.on('connect', () => {
-        if (pid.value) {
-            sio.emit('getArchive', pid.value, archive => {
-                if (archive) {
-                    archiveData.value = JSON.parse(archive)
-                }
-            })
-        }
-    })
 })
 </script>

@@ -6,8 +6,8 @@
             </div>
         </v-navigation-drawer>
         <v-main>
-            <craigslist-archive v-if="!/^\/archive\/cl\//.test(location?.pathname)" @change-theme="themeHandler" />
-            <craigslist-archived-ad v-else @change-theme="themeHandler" />
+            <craigslist-archive v-if="location.pathname && !/^\/archive\/cl\//.test(location.pathname)" @change-theme="themeHandler" />
+            <craigslist-archived-ad v-else-if="location.pathname" @change-theme="themeHandler" />
         </v-main>
         <v-navigation-drawer v-if="!smAndDown" order="2" width="200" floating location="right">
             <div class="h-100 d-flex align-center">
