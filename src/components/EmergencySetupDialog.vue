@@ -122,9 +122,9 @@ import 'animate.css'
 const store = useAppStore()
 const props = defineProps({
     modelValue: Boolean,
+    updatedAlert: Boolean
     updatedContact: Boolean,
     updatedMessage: Boolean,
-    deletedAlert: Boolean
 })
 const emit = defineEmits(['update:modelValue', 'create:contact', 'update:contact', 'delete:contact', 'create:message', 'update:message', 'delete:message'])
 const userMessages = computed(() => store.settings.emergencyContact.messages.filter(message => message.owner !== 'system'))
@@ -199,7 +199,9 @@ watch(dialog, value => emit('update:modelValue', value))
 watch(() => props.modelValue, value => dialog.value = value)
 watch(() => props.updatedContact, value => {
     if (value) {
-        loading.value.default = false
+        loading.value['create:contact'] = false
+        loading.value['update:contact'] = false
+        loading.value['delete:contact'] = false
         justLoaded.value = true
         success.value = true
         setTimeout(() => success.value = false)
@@ -209,7 +211,9 @@ watch(() => props.updatedContact, value => {
 })
 watch(() => props.updatedMessage, value => {
     if (value) {
+        loading.value['create:message'] = false
         loading.value['update:message'] = false
+        loading.value['delete:message'] = false
         justLoaded.value = true
         success.value = true
         setTimeout(() => success.value = false)
@@ -217,8 +221,10 @@ watch(() => props.updatedMessage, value => {
         messageDiff.value = { ...message.value }
     }
 })
-watch(() => props.deletedAlert, value => {
+watch(() => props.updatedAlert, value => {
     if (value) {
+        loading.value['create:alert'] = false
+        loading.value['update:alert'] = false
         loading.value['delete:alert'] = false
         justLoaded.value = true
         success.value = true

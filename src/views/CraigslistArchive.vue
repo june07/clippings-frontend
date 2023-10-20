@@ -195,7 +195,7 @@
             @delete:alert="deleteAlert => emergencySetupHandler({ deleteAlert })"
             :updatedMessage="updated.message"
             :updatedContact="updated.contact"
-            :deletedAlert="deleted.alert" />
+            :updatedAlert="updated.alert" />
         <emergency-alert-dialog v-model="dialogs.emergencyAlert" @close="dialogs.emergencyAlert = false" :listingPid="listingPid" :adURL="store.textField" @create:alert="alertHandler" :created="created.alert" />
     </v-container>
 </template>
