@@ -69,7 +69,7 @@
                     -->
                 </v-expansion-panels>
                 <div class="text-overline mt-8">Set Emergency Alerts</div>
-                <div v-if="!store.alerts.emergency.length" class="text-center">none set</div>
+                <div v-if="!store.alerts.emergency.length" class="text-center">no alerts set</div>
                 <v-list v-else lines="one">
                     <v-list-item v-for="(listAlert, index) of store.alerts.emergency" :key="listAlert._id" :class="listItemClass('alert', listAlert._id)" :style="!success && justLoaded ? 'transition: background-color 3s' : ''">
                         <template v-slot:prepend>
@@ -122,9 +122,9 @@ import 'animate.css'
 const store = useAppStore()
 const props = defineProps({
     modelValue: Boolean,
-    updatedAlert: Boolean
+    updatedAlert: Boolean,
     updatedContact: Boolean,
-    updatedMessage: Boolean,
+    updatedMessage: Boolean
 })
 const emit = defineEmits(['update:modelValue', 'create:contact', 'update:contact', 'delete:contact', 'create:message', 'update:message', 'delete:message'])
 const userMessages = computed(() => store.settings.emergencyContact.messages.filter(message => message.owner !== 'system'))
