@@ -7,6 +7,8 @@
             </v-card-title>
             <v-card-subtitle><span style="text-wrap: pretty">{{ archiveData.listingURL }}</span></v-card-subtitle>
             <v-card-text>
+                <v-btn v-if="!alert" variant="text" density="compact" color="red-accent-4" :text="smAndDown ? undefined : 'Set Alert'" :prepend-icon="smAndDown ? undefined : 'emergency_share'" :icon="smAndDown ? 'emergency_share' : undefined" @click="dialogs.emergencyAlert = !dialogs.emergencyAlert" :loading="loading['create:alert']" />
+                <v-btn v-else variant="text" density="compact" color="red-accent-4" :text="smAndDown ? undefined : 'Delete Alert'" :prepend-icon="smAndDown ? undefined : 'emergency_share'" :icon="smAndDown ? 'emergency_share' : undefined" @click="actionHandler({ deleteAlert: { _id: alert._id } })" :loading="loading['delete:alert']" />
                 <v-row>
                     <v-col :cols="smAndDown ? 12 : 6">
                         <div class="my-2 text-overline">Raw Links</div>
@@ -41,6 +43,7 @@
         </v-card>
         <Giscus v-if="archiveData" class="giscus" repo="june07/clippings-comments" repo-id="R_kgDOKZ-3jA" category="Announcements" category-id="DIC_kwDOKZ-3jM4CZvZb" mapping="specific" :term="archiveData.listingPid" strict="0" reactions-enabled="1" emit-metadata="1" input-position="bottom" theme="preferred_color_scheme" lang="en" />
         <v-spacer />
+        <emergency-alert-dialog v-model="dialogs.emergencyAlert" @close="dialogs.emergencyAlert = false" :listingPid="listingPid" :adURL="archiveData?.url" @create:alert="alertHandler" :created="updated.alert" />
     </v-container>
 </template>
 
@@ -62,6 +65,7 @@ import 'lightgallery/scss/lightgallery-bundle.scss'
 import Giscus from '@giscus/vue'
 
 import NavHeader from '@/components/NavHeader.vue'
+import EmergencyAlertDialog from '@/components/EmergencyAlertDialog.vue'
 
 const { $api } = getCurrentInstance().appContext.config.globalProperties
 const { smAndDown } = useDisplay()
@@ -70,6 +74,20 @@ const store = useAppStore()
 const archiveData = ref()
 const location = ref({})
 const plugins = [lgZoom, lgThumbnail, lgShare, lgRotate, lgFullscreen, lgHash, lgComment]
+const listingPid = computed(() => location.value.pathname?.split('/')?.[3])
+const alert = computed(() => store.alerts.emergency.find(alert => alert.listingPid == listingPid.value))
+const loading = ref({
+    default: false,
+    'create:alert': false,
+    'update:alert': false,
+    'delete:alert': false
+})
+const dialogs = ref({
+    emeemergencyAlert: false
+})
+const updated = ref({
+    alert: false
+})
 const sio = io(VITE_API_SERVER + '/', {
     transports: ['websocket']
 }).on('connect_error', (error) => {
@@ -77,15 +95,37 @@ const sio = io(VITE_API_SERVER + '/', {
 }).on('error', reason => {
     console.log(reason)
 }).on('connect', () => {
-    if (pid.value) {
-        sio.emit('getArchive', pid.value, archive => {
+    if (listingPid.value) {
+        sio.emit('getArchive', listingPid.value, archive => {
             if (archive) {
                 archiveData.value = JSON.parse(archive)
             }
         })
+        sio.emit('readAlerts', {}, alerts => store.alerts.emergency = alerts)
     }
+}).on('alertCreated', () => {
+    updated.value.alert = true
+    setTimeout(() => updated.value.alert = false)
+    loading.value['create:alert'] = false
+}).on('alertDeleted', _id => {
+    const index = store.alerts.emergency.findIndex(alert => alert._id === _id)
+    if (index !== -1) {
+        store.alerts.emergency.splice(index, 1)
+    }
+    updated.value.alert = true
+    setTimeout(() => updated.value.alert = false)
+    loading.value['delete:alert'] = false
 })
-const pid = computed(() => location.value.pathname?.split('/')?.[3])
+function alertHandler(params) {
+    const alert = {
+        listingPid: listingPid.value,
+        ...params
+    }
+    sio.emit('createAlert', alert)
+}
+function actionHandler(event) {
+    sio.emit(Object.keys(event)[0], Object.values(event)[0])
+}
 const getArchiveURL = (pid) => pid && `https://clippings-archive.june07.com/craigslist/${pid}`
 onMounted(() => {
     if (!store.sessionId) {
