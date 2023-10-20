@@ -16,6 +16,9 @@ export const useAppStore = defineStore("app", {
                 disabled: false
             }
         },
+        alerts: {
+            emergency: []
+        },
         settings: {
             alertCheckbox: false,
             emergencyContact: {

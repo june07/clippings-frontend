@@ -1,7 +1,7 @@
 <template>
     <v-dialog persistent no-click-animation :retain-focus="false" transition="dialog-bottom-transition" width="auto" :min-width="smAndDown ? '100%' : undefined" :max-width="smAndDown ? undefined : 700" v-model="dialog" @update:model-value="emit('update:modelValue', dialog)">
         <v-card rounded="xl" class="pa-4" style="opacity: 0.96">
-            <v-card-title class="font-weight-light text-center">Emergency Alert Setup</v-card-title>
+            <v-card-title class="font-weight-light text-center">Set Emergency Alert</v-card-title>
             <v-card-subtitle class="font-weight-light text-center">Ad: {{ adURL }}</v-card-subtitle>
             <v-card-text>
                 <p class="mb-8">

@@ -68,6 +68,26 @@
                     </v-expansion-panel>
                     -->
                 </v-expansion-panels>
+                <div class="text-overline mt-8">Set Emergency Alerts</div>
+                <div v-if="!store.alerts.emergency.length" class="text-center">none set</div>
+                <v-list v-else lines="one">
+                    <v-list-item v-for="(listAlert, index) of store.alerts.emergency" :key="listAlert._id" :class="listItemClass('alert', listAlert._id)" :style="!success && justLoaded ? 'transition: background-color 3s' : ''">
+                        <template v-slot:prepend>
+                            <v-chip size="small" color="red-darken-2" class="mr-4">
+                                <span class="text-h6 text-capitalize">{{ index + 1 }}</span>
+                            </v-chip>
+                        </template>
+                        <template v-slot:title>
+                            <div class="font-weight-medium">{{ listAlert.listingPid }} (to: {{ listAlert.to.map(to => to.name).join(',') }})</div>
+                        </template>
+                        <template v-slot:subtitle>
+                            <div class="text-caption">Sending on {{ new Date(listAlert.sendAt).toLocaleString() }}</div>
+                        </template>
+                        <template v-slot:append>
+                            <v-btn @click="actionHandler('delete:alert', { _id: listAlert._id })" density="compact" variant="plain" :loading="loading['delete:alert']">Cancel</v-btn>
+                        </template>
+                    </v-list-item>
+                </v-list>
             </v-card-text>
             <v-card-actions class="d-flex justify-center">
                 <v-btn :color="store.settings.emergencyContact.contacts.length ? 'success' : ''" :disabled="!store.settings.emergencyContact.contacts.length || disabled.okay" prepend-icon="check" variant="tonal" rounded block @click="dialog = false">Okay</v-btn>
@@ -80,12 +100,15 @@
     border-radius: 24px;
 }
 
-.contact.active-list-item.success, .message.active-list-item.success {
+.contact.active-list-item.success,
+.message.active-list-item.success {
     background-color: green;
 }
+
 .message.active-list-item {
     background-color: #FFEBEE;
 }
+
 .contact.active-list-item {
     background-color: #FFECB3;
 }
@@ -100,7 +123,8 @@ const store = useAppStore()
 const props = defineProps({
     modelValue: Boolean,
     updatedContact: Boolean,
-    updatedMessage: Boolean
+    updatedMessage: Boolean,
+    deletedAlert: Boolean
 })
 const emit = defineEmits(['update:modelValue', 'create:contact', 'update:contact', 'delete:contact', 'create:message', 'update:message', 'delete:message'])
 const userMessages = computed(() => store.settings.emergencyContact.messages.filter(message => message.owner !== 'system'))
@@ -139,6 +163,7 @@ const loading = ref({
     'create:message': false,
     'update:message': false,
     'delete:message': false,
+    'delete:alert': false
 })
 const justLoaded = ref(false)
 const isValid = ref({
@@ -170,7 +195,7 @@ const rules = {
         (v) => !!v || `Relationship is required.`,
     ]
 }
-watch(() => dialog, value => emit('update:modelValue', value))
+watch(dialog, value => emit('update:modelValue', value))
 watch(() => props.modelValue, value => dialog.value = value)
 watch(() => props.updatedContact, value => {
     if (value) {
@@ -190,6 +215,15 @@ watch(() => props.updatedMessage, value => {
         setTimeout(() => success.value = false)
         setTimeout(() => justLoaded.value = false, 3000)
         messageDiff.value = { ...message.value }
+    }
+})
+watch(() => props.deletedAlert, value => {
+    if (value) {
+        loading.value['delete:alert'] = false
+        justLoaded.value = true
+        success.value = true
+        setTimeout(() => success.value = false)
+        setTimeout(() => justLoaded.value = false, 3000)
     }
 })
 const changeHandler = (event) => {

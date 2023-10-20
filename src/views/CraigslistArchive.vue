@@ -62,7 +62,7 @@
                     <template v-slot:details>
                         <v-checkbox density="compact" hide-details class="d-flex justify-end" v-model="alertCheckbox">
                             <template v-slot:prepend>
-                                <v-btn variant="text" density="compact" icon="emergency_share" :color="alertCheckbox ? 'red-accent-4' : ''" @click="dialogs.emergencySetup = true" />
+                                <v-btn variant="text" density="compact" icon="emergency_share" :color="alertCheckbox ? 'red-accent-4' : ''" @click="emergencySetupDialogHandler" />
                             </template>
                         </v-checkbox>
                     </template>
@@ -186,14 +186,16 @@
             </v-card>
         </v-dialog>
         <emergency-setup-dialog v-model="dialogs.emergencySetup" @close="dialogs.emergencySetup = false"
-            @create:contact="createContact => emergencySetupDialogHandler({ createContact })"
-            @update:contact="updateContact => emergencySetupDialogHandler({ updateContact })"
-            @delete:contact="deleteContact => emergencySetupDialogHandler({ deleteContact })"
-            @create:message="createMessage => emergencySetupDialogHandler({ createMessage })"
-            @update:message="updateMessage => emergencySetupDialogHandler({ updateMessage })"
-            @delete:message="deleteMessage => emergencySetupDialogHandler({ deleteMessage })"
+            @create:contact="createContact => emergencySetupHandler({ createContact })"
+            @update:contact="updateContact => emergencySetupHandler({ updateContact })"
+            @delete:contact="deleteContact => emergencySetupHandler({ deleteContact })"
+            @create:message="createMessage => emergencySetupHandler({ createMessage })"
+            @update:message="updateMessage => emergencySetupHandler({ updateMessage })"
+            @delete:message="deleteMessage => emergencySetupHandler({ deleteMessage })"
+            @delete:alert="deleteAlert => emergencySetupHandler({ deleteAlert })"
             :updatedMessage="updated.message"
-            :updatedContact="updated.contact" />
+            :updatedContact="updated.contact"
+            :deletedAlert="deleted.alert" />
         <emergency-alert-dialog v-model="dialogs.emergencyAlert" @close="dialogs.emergencyAlert = false" :listingPid="listingPid" :adURL="store.textField" @create:alert="alertHandler" :created="created.alert" />
     </v-container>
 </template>
@@ -349,8 +351,12 @@ async function emergencyAlertHandler() {
     }
     dialogs.value.emergencyAlert = true
 }
-function emergencySetupDialogHandler(event) {
+function emergencySetupHandler(event) {
     sio.emit(Object.keys(event)[0], Object.values(event)[0])
+}
+function emergencySetupDialogHandler() {
+    sio.emit('readAlerts', {}, alerts => store.alerts.emergency = alerts)
+    dialogs.value.emergencySetup = !dialogs.value.emergencySetup
 }
 function archiveHandler() {
     if (!listingPid.value || !/https:\/\/.*\.craigslist\.org\/.+/.test(store.textField)) return
@@ -476,6 +482,13 @@ onMounted(() => {
     }).on('alertCreated', () => {
         created.value.alert = true
         setTimeout(() => created.value.alert = false)
+    }).on('alertDeleted', _id => {
+        const index = store.alerts.emergency.findIndex(alert => alert._id === _id)
+        if (index !== -1) {
+            store.alerts.emergency.splice(index, 1)
+        }
+        deleted.value.alert = true
+        setTimeout(() => deleted.value.alert = false)
     }).on('mostRecentListings', payload => {
         mostRecentListings.value = payload.map(mostRecentListing => JSON.parse(mostRecentListing))
             .sort((listingA, listingB) => (listingA.createdAt || 264330300000) > (listingB.createdAt || 264330300000) ? -1 : 0)
