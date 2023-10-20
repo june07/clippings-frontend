@@ -315,7 +315,7 @@ const getCodeURL = inject('getCodeURL')
 const getWebURL = inject('getWebURL')
 const getArchiveURL = inject('getArchiveURL')
 async function emergencyAlertHandler() {
-    if (store.settings.emergencyContact.contacts.length) {
+    if (!store.settings.emergencyContact.contacts.length) {
         dialogs.value.emergencySetup = true
         return
     }
