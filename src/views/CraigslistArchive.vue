@@ -62,7 +62,7 @@
                     <template v-slot:details>
                         <v-checkbox density="compact" hide-details class="d-flex justify-end" v-model="alertCheckbox">
                             <template v-slot:prepend>
-                                <v-icon icon="emergency_share" :color="alertCheckbox ? 'red-accent-4' : ''" />
+                                <v-btn variant="text" density="compact" icon="emergency_share" :color="alertCheckbox ? 'red-accent-4' : ''" @click="dialogs.emergencySetup = true" />
                             </template>
                         </v-checkbox>
                     </template>
@@ -185,7 +185,15 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
-        <emergency-setup-dialog v-model="dialogs.emergencySetup" @close="dialogs.emergencySetup = false" @create:contact="createContact => emergencySetupDialogHandler({ createContact })" @update:contact="updateContact => emergencySetupDialogHandler({ updateContact })" @delete:contact="deleteContact => emergencySetupDialogHandler({ deleteContact })" :updatedContact="updated.contact" />
+        <emergency-setup-dialog v-model="dialogs.emergencySetup" @close="dialogs.emergencySetup = false"
+            @create:contact="createContact => emergencySetupDialogHandler({ createContact })"
+            @update:contact="updateContact => emergencySetupDialogHandler({ updateContact })"
+            @delete:contact="deleteContact => emergencySetupDialogHandler({ deleteContact })"
+            @create:message="createMessage => emergencySetupDialogHandler({ createMessage })"
+            @update:message="updateMessage => emergencySetupDialogHandler({ updateMessage })"
+            @delete:message="deleteMessage => emergencySetupDialogHandler({ deleteMessage })"
+            :updatedMessage="updated.message"
+            :updatedContact="updated.contact" />
         <emergency-alert-dialog v-model="dialogs.emergencyAlert" @close="dialogs.emergencyAlert = false" :listingPid="listingPid" :adURL="store.textField" @create:alert="alertHandler" :created="created.alert" />
     </v-container>
 </template>
@@ -273,14 +281,19 @@ const archiveData = ref({})
 const listingPid = computed(() => pidFromURL(store.textField) || store.textField?.match(/\d{10}/)?.[0])
 const alertCheckbox = ref(store.settings.alertCheckbox)
 const created = ref({
+    alert: false,
     contact: false,
-    alert: false
+    message: false
 })
 const updated = ref({
-    contact: false
+    alert: false,
+    contact: false,
+    message: false
 })
 const deleted = ref({
-    contact: false
+    alert: false,
+    contact: false,
+    message: false
 })
 const sio = io(VITE_API_SERVER + '/', {
     transports: ['websocket']
@@ -434,6 +447,27 @@ onMounted(() => {
         }
         deleted.value.contact = true
         setTimeout(() => deleted.value.contact = false)
+    }).on('messageCreated', payload => {
+        store.settings.emergencyContact.messages.push(payload)
+        created.value.message = true
+        setTimeout(() => created.value.message = false)
+    }).on('messageUpdated', payload => {
+        const index = store.settings.emergencyContact?.messages?.findIndex(message => message._id === payload._id)
+
+        if (index !== -1) {
+            store.settings.emergencyContact.messages[index] = payload
+        } else {
+            store.settings.emergencyContact.messages.push(payload)
+        }
+        updated.value.message = true
+        setTimeout(() => updated.value.message = false)
+    }).on('messageDeleted', payload => {
+        const index = store.settings.emergencyContact?.messages?.findIndex(message => message._id === payload._id)
+        if (index !== -1) {
+            store.settings.emergencyContact.messages.splice(index, 1)
+        }
+        deleted.value.message = true
+        setTimeout(() => deleted.value.message = false)
     }).on('alertCreated', () => {
         created.value.alert = true
         setTimeout(() => created.value.alert = false)
