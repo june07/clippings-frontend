@@ -15,6 +15,17 @@ export const useAppStore = defineStore("app", {
             share: {
                 disabled: false
             }
+        },
+        settings: {
+            alertCheckbox: false,
+            emergencyContact: {
+                from: undefined,
+                contacts: [],
+                messages: []
+            },
+            profile: {
+                name: undefined
+            }
         }
     }),
     persist: true,

@@ -17,11 +17,12 @@
     "cookie": "^0.5.0",
     "humanize-duration": "^3.30.0",
     "lightgallery": "^2.7.2",
+    "nanoid": "^5.0.2",
     "pinia": "^2.0.23",
     "pinia-plugin-persistedstate": "^3.1.0",
     "socket.io-client": "^4.6.1",
-    "uuid": "^9.0.1",
     "vue": "^3.3.4",
+    "vue-flatpickr-component": "^11.0.3",
     "vue-social-sharing": "^4.0.0-alpha4",
     "vuetify": "^3.3.13"
   },

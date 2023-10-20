@@ -58,7 +58,15 @@
             <v-card-subtitle v-if="!loading.archive" class="font-weight-light text-center">Enter the link to the ad you want to archive</v-card-subtitle>
             <v-card-subtitle v-else class="font-weight-light text-center font-caption text-wrap">{{ smAndDown ? shortenAdURL(store.textField) : store.textField }}</v-card-subtitle>
             <v-card-text v-show="!loading.archive" class="pa-0 mt-8">
-                <v-text-field validate-on="lazy" density="compact" variant="outlined" rounded="lg" v-model="store.textField" persistent-hint hint="Any Craigslist ad link" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url" />
+                <v-text-field validate-on="lazy" density="compact" variant="outlined" rounded="lg" v-model="store.textField" persistent-hint hint="Any Craigslist ad link" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url">
+                    <template v-slot:details>
+                        <v-checkbox density="compact" hide-details class="d-flex justify-end" v-model="alertCheckbox">
+                            <template v-slot:prepend>
+                                <v-icon icon="emergency_share" :color="alertCheckbox ? 'red-accent-4' : ''" />
+                            </template>
+                        </v-checkbox>
+                    </template>
+                </v-text-field>
                 <div v-if="archiveData[listingPid] || archiveWaitingToBeReady !== undefined" class="text-center">
                     <div class="text-h6 my-4">📰 Ad saved. 🗞️</div>
                     <p class="text-start mb-4">The data is saved to the cloud and will be accessible via the links below once they turn green:</p>
@@ -177,6 +185,8 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
+        <emergency-setup-dialog v-model="dialogs.emergencySetup" @close="dialogs.emergencySetup = false" @create:contact="createContact => emergencySetupDialogHandler({ createContact })" @update:contact="updateContact => emergencySetupDialogHandler({ updateContact })" @delete:contact="deleteContact => emergencySetupDialogHandler({ deleteContact })" :updatedContact="updated.contact" />
+        <emergency-alert-dialog v-model="dialogs.emergencyAlert" @close="dialogs.emergencyAlert = false" :listingPid="listingPid" :adURL="store.textField" @create:alert="alertHandler" :created="created.alert" />
     </v-container>
 </template>
 <style scoped>
@@ -185,10 +195,19 @@
     padding: 0 8px 0 8px;
 }
 
+:deep() .v-text-field .v-input__details {
+    padding: 0;
+    align-items: flex-start;
+}
+
 :deep() .v-banner-text {
     padding-right: 0 !important;
     margin-top: auto;
     margin-bottom: auto;
+}
+
+:deep() .v-messages {
+    margin: auto;
 }
 
 :deep() .v-banner__prepend {
@@ -196,9 +215,13 @@
     margin-top: auto;
     margin-bottom: auto;
 }
+
+:deep() .v-text-field .v-input__prepend {
+    margin-right: 0;
+}
 </style>
 <script setup>
-import { ref, onMounted, getCurrentInstance, computed, watch } from 'vue'
+import { ref, onMounted, getCurrentInstance, computed, watch, inject } from 'vue'
 import { useAppStore } from '@/store/app'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 import io from 'socket.io-client'
@@ -209,6 +232,8 @@ import humanizeDuration from 'humanize-duration'
 import SocialShare from '@/components/SocialShare.vue'
 import EmailSignup from '@/components/EmailSignup.vue'
 import NavHeader from '@/components/NavHeader.vue'
+import EmergencySetupDialog from '@/components/EmergencySetupDialog.vue'
+import EmergencyAlertDialog from '@/components/EmergencyAlertDialog.vue'
 
 const { $api } = getCurrentInstance().appContext.config.globalProperties
 const intervals = ref({
@@ -231,7 +256,9 @@ const loading = ref({
     archive: false,
 })
 const dialogs = ref({
-    subscribed: false
+    subscribed: false,
+    emergencySetup: false,
+    emergencyAlert: false
 })
 const subscribed = ref(false)
 const mostRecentListings = ref([])
@@ -243,7 +270,18 @@ const store = useAppStore()
 const data = ref({})
 const archiveWaitingToBeReady = ref()
 const archiveData = ref({})
-const listingPid = computed(() => pidFromUrl(store.textField) || store.textField?.match(/\d{10}/)?.[0])
+const listingPid = computed(() => pidFromURL(store.textField) || store.textField?.match(/\d{10}/)?.[0])
+const alertCheckbox = ref(store.settings.alertCheckbox)
+const created = ref({
+    contact: false,
+    alert: false
+})
+const updated = ref({
+    contact: false
+})
+const deleted = ref({
+    contact: false
+})
 const sio = io(VITE_API_SERVER + '/', {
     transports: ['websocket']
 })
@@ -271,15 +309,34 @@ const sio = io(VITE_API_SERVER + '/', {
     .on('error', reason => {
         console.log(reason)
     })
-const pidFromUrl = (url) => url && url.match(/\/([^\/]*)\.html/)?.[1]
-const shortenAdURL = (url) => url && url.match(/https?:\/\/[^/]*(.*)/)?.[1] ? `...${url.match(/https?:\/\/[^/]*(.*)/)[1]}` : ''
-const getCodeURL = (pid) => pid && `https://github.com/june07/clippings-archive/tree/main/craigslist/${pid}`
-const getWebURL = (pid) => pid && `${location.value.origin}/archive/cl/${pid}`
-const getArchiveURL = (pid) => pid && `https://clippings-archive.june07.com/craigslist/${pid}`
+const pidFromURL = inject('pidFromURL')
+const shortenAdURL = inject('shortenAdURL')
+const getCodeURL = inject('getCodeURL')
+const getWebURL = inject('getWebURL')
+const getArchiveURL = inject('getArchiveURL')
+async function emergencyAlertHandler() {
+    if (store.settings.emergencyContact.contacts.updated > Date.now() - 3_600_000) {
+        sio.emit('getEmergencyContacts', contacts => {
+            store.settings.emergencyContact.contacts = contacts
+        })
+    }
+    if (store.settings.emergencyContact.messages.updated > Date.now() - 3_600_000) {
+        sio.emit('getEmergencyMessages', messages => {
+            store.settings.emergencyContact.messages = messages
+        })
+    }
+    dialogs.value.emergencyAlert = true
+}
+function emergencySetupDialogHandler(event) {
+    sio.emit(Object.keys(event)[0], Object.values(event)[0])
+}
 function archiveHandler() {
     if (!listingPid.value || !/https:\/\/.*\.craigslist\.org\/.+/.test(store.textField)) return
     loading.value.archive = true
     sio.emit('archive', store.textField)
+    if (alertCheckbox.value) {
+        emergencyAlertHandler()
+    }
     if (timeouts.value.archiveLoading[listingPid.value]) clearInterval(timeouts.value.archiveLoading[listingPid.value])
     timeouts.value.archiveLoading[listingPid.value] = setTimeout(() => loading.value.archive = false, 30000)
 }
@@ -298,6 +355,13 @@ function resetHandler() {
 function reset() {
     archiveWaitingToBeReady.value = undefined
     store.textField = undefined
+}
+function alertHandler(params) {
+    const alert = {
+        listingPid: listingPid.value,
+        ...params
+    }
+    sio.emit('createAlert', alert)
 }
 watch(() => store.textField, (newValue, oldValue) => {
     if (!newValue || newValue === oldValue || !newValue.match(/\d{10}/)?.[0]) return
@@ -341,43 +405,67 @@ onMounted(() => {
         }
         sio.emit('getMostRecentDiscussions', { last: 10 })
         sio.emit('getMostRecentListings', payload => {
+            if (!payload?.length) return
             mostRecentListings.value = payload.map(mostRecentListing => JSON.parse(mostRecentListing))
                 .sort((listingA, listingB) => (listingA.createdAt || 264330300000) > (listingB.createdAt || 264330300000) ? -1 : 0)
         })
-    })
-        .on('mostRecentListings', payload => {
-            mostRecentListings.value = payload.map(mostRecentListing => JSON.parse(mostRecentListing))
-                .sort((listingA, listingB) => (listingA.createdAt || 264330300000) > (listingB.createdAt || 264330300000) ? -1 : 0)
-        })
-        .on('mostRecentDiscussions', payload => {
-            mostRecentDiscussions.value = payload.filter(discussion => discussion.comments.totalCount > 0)
-        })
-        .on('update', payload => {
-            const { archived } = payload
-            const { listingPid } = archived
+    }).on('contactCreated', payload => {
+        store.settings.emergencyContact.contacts.push(payload)
+        created.value.contact = true
+        setTimeout(() => created.value.contact = false)
+    }).on('contactUpdated', payload => {
+        const index = store.settings.emergencyContact?.contacts?.findIndex(contact => contact._id === payload._id)
 
-            archiveData.value[listingPid] = archived
-            loading.value.archive = false
-            archiveWaitingToBeReady.value = true
+        if (index !== -1) {
+            store.settings.emergencyContact.contacts[index] = payload
+        } else {
+            store.settings.emergencyContact.contacts.push(payload)
+        }
+        updated.value.contact = true
+        setTimeout(() => updated.value.contact = false)
+    }).on('contactDeleted', payload => {
+        const index = store.settings.emergencyContact?.contacts?.findIndex(contact => contact._id === payload._id)
+        if (index !== -1) {
+            store.settings.emergencyContact.contacts.splice(index, 1)
+        }
+        deleted.value.contact = true
+        setTimeout(() => deleted.value.contact = false)
+    }).on('alertCreated', () => {
+        created.value.alert = true
+        setTimeout(() => created.value.alert = false)
+    }).on('mostRecentListings', payload => {
+        mostRecentListings.value = payload.map(mostRecentListing => JSON.parse(mostRecentListing))
+            .sort((listingA, listingB) => (listingA.createdAt || 264330300000) > (listingB.createdAt || 264330300000) ? -1 : 0)
+    }).on('mostRecentDiscussions', payload => {
+        mostRecentDiscussions.value = payload.filter(discussion => discussion.comments.totalCount > 0)
+    }).on('emergencyContact', payload => {
+        store.settings.emergencyContact = payload
+    }).on('update', payload => {
+        const { archived } = payload
+        const { listingPid } = archived
 
-            intervals.value.checkArchiveLinkActive = setInterval(async () => {
-                try {
-                    const response = await fetch(getArchiveURL(listingPid))
-                    if (response.status == 200) {
-                        archiveWaitingToBeReady.value = false
-                        /** can't wait on the opaque response because we have no idea what the response code is so just clear the interval
-                         * and assume if the web link is ready then the git link should be, particularly since the code was pushed.
-                        */
-                        clearInterval(intervals.value.checkArchiveLinkActive)
-                    }
-                } catch (error) {
-                    error
+        archiveData.value[listingPid] = archived
+        loading.value.archive = false
+        archiveWaitingToBeReady.value = true
+
+        intervals.value.checkArchiveLinkActive = setInterval(async () => {
+            try {
+                const response = await fetch(getArchiveURL(listingPid))
+                if (response.status == 200) {
+                    archiveWaitingToBeReady.value = false
+                    /** can't wait on the opaque response because we have no idea what the response code is so just clear the interval
+                     * and assume if the web link is ready then the git link should be, particularly since the code was pushed.
+                    */
+                    clearInterval(intervals.value.checkArchiveLinkActive)
                 }
-            }, 10000)
-            setTimeout(() => {
-                clearInterval(intervals.value.checkArchiveLinkActive)
-            }, 300000)
-        })
+            } catch (error) {
+                error
+            }
+        }, 10000)
+        setTimeout(() => {
+            clearInterval(intervals.value.checkArchiveLinkActive)
+        }, 300000)
+    })
     setTimeout(() => {
         isMounted.value = true, 11000
     })
@@ -395,7 +483,6 @@ onMounted(() => {
         // You'll need to make sure that `giscusData` contains the message you're
         // expecting, e.g. by using `if ('discussion' in giscusData)`.
     }
-
     window.addEventListener('message', handleMessage)
     // Some time later...
     //window.removeEventListener('message', handleMessage)

@@ -15,7 +15,7 @@
     </div>
 </template>
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { onMounted } from 'vue'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 import { useAppStore } from '@/store/app'
 

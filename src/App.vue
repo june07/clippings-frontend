@@ -29,8 +29,13 @@
         </v-snackbar>
     </v-app>
 </template>
+<style>
+html {
+    font-stretch: condensed !important
+}
+</style>
 <script setup>
-import { ref, getCurrentInstance, onMounted } from 'vue'
+import { ref, getCurrentInstance, onMounted, provide } from 'vue'
 import { useAppStore } from '@/store/app'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 
@@ -46,7 +51,7 @@ const lastBuild = ref()
 const showCredits = ref(false)
 const versionCheckIntervalId = ref()
 const buildInfo = ref()
-const location = ref()
+const location = ref({})
 
 const checkVersion = async () => {
     buildInfo.value = await $api.buildInfo()
@@ -79,4 +84,16 @@ versionCheckIntervalId.value = setInterval(checkVersion, 60000)
 onMounted(() => {
     location.value = window.location
 })
+
+const pidFromURL = (url) => url && url.match(/\/([^\/]*)\.html/)?.[1]
+const shortenAdURL = (url) => url && url.match(/https?:\/\/[^/]*(.*)/)?.[1] ? `...${url.match(/https?:\/\/[^/]*(.*)/)[1]}` : ''
+const getCodeURL = (pid) => pid && `https://github.com/june07/clippings-archive/tree/main/craigslist/${pid}`
+const getWebURL = (pid) => pid && location.value && `${location.value.origin}/archive/cl/${pid}`
+const getArchiveURL = (pid) => pid && `https://clippings-archive.june07.com/craigslist/${pid}`
+
+provide('pidFromURL', pidFromURL)
+provide('shortenAdURL', shortenAdURL)
+provide('getCodeURL', getCodeURL)
+provide('getWebURL', getWebURL)
+provide('getArchiveURL', getArchiveURL)
 </script>
