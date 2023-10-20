@@ -315,6 +315,10 @@ const getCodeURL = inject('getCodeURL')
 const getWebURL = inject('getWebURL')
 const getArchiveURL = inject('getArchiveURL')
 async function emergencyAlertHandler() {
+    if (store.settings.emergencyContact.contacts.length) {
+        dialogs.value.emergencySetup = true
+        return
+    }
     if (store.settings.emergencyContact.contacts.updated > Date.now() - 3_600_000) {
         sio.emit('getEmergencyContacts', contacts => {
             store.settings.emergencyContact.contacts = contacts
