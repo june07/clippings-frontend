@@ -29,8 +29,8 @@
                             <v-text-field tabindex="1" density="compact" rounded v-model="contact.name" label="name" id="name" :rules="rules.name" @change="changeHandler" />
                             <v-text-field tabindex="2" density="compact" rounded v-model="contact.email" label="email address" id="email" :rules="rules.email" @change="changeHandler" />
                             <v-text-field tabindex="3" density="compact" rounded v-model="contact.relationship" label="relationship" id="relationship" :rules="rules.relationship" @change="changeHandler" />
-                            <v-btn tabindex="4" v-if="!editing" @click="actionHandler('create:contact', contact)" prepend-icon="person_add" density="compact" variant="text" :disabled="disabled.add" :loading="loading['create:contact']">Add</v-btn>
-                            <v-btn v-if="editing" @click="actionHandler('update:contact', contact)" prepend-icon="save" density="compact" variant="text" :color="success ? 'green' : ''" :style="!success ? 'transition: color 3s' : ''" :disabled="disabled.update" :loading="loading['update:contact']">Update</v-btn>
+                            <v-btn tabindex="4" v-if="!editing" @click="actionHandler('create:contact', contact)" prepend-icon="person_add" density="compact" variant="text" :disabled="disabled['create:contact']" :loading="loading['create:contact']">Add</v-btn>
+                            <v-btn v-if="editing" @click="actionHandler('update:contact', contact)" prepend-icon="save" density="compact" variant="text" :color="success ? 'green' : ''" :style="!success ? 'transition: color 3s' : ''" :disabled="disabled['update:contact']" :loading="loading['update:contact']">Update</v-btn>
                             <v-btn v-if="editing" @click="actionHandler('delete:contact', contact._id)" prepend-icon="delete" density="compact" variant="text" :loading="loading['delete:contact']">Delete</v-btn>
                             <v-btn v-if="editing" @click="cancelEditHandler" prepend-icon="cancel" density="compact" variant="text">Cancel</v-btn>
                         </template>
@@ -55,8 +55,8 @@
                                     <div class="text-wrap"></div>
                                 </template>
                             </v-textarea>
-                            <v-btn v-if="!userMessages.length" @click="actionHandler('create:message', message)" prepend-icon="add" density="compact" variant="text" :color="success ? 'green' : ''" :style="!success ? 'transition: color 3s' : ''" :disabled="disabled.update" :loading="loading['create:message']">Add</v-btn>
-                            <v-btn v-if="userMessages.length" @click="actionHandler('update:message', message)" prepend-icon="save" density="compact" variant="text" :color="success ? 'green' : ''" :style="!success ? 'transition: color 3s' : ''" :disabled="disabled.update" :loading="loading['update:message']">Update</v-btn>
+                            <v-btn v-if="!userMessages.length" @click="actionHandler('create:message', message)" prepend-icon="add" density="compact" variant="text" :color="success ? 'green' : ''" :style="!success ? 'transition: color 3s' : ''" :disabled="disabled['create:message']" :loading="loading['create:message']">Add</v-btn>
+                            <v-btn v-if="userMessages.length" @click="actionHandler('update:message', message)" prepend-icon="save" density="compact" variant="text" :color="success ? 'green' : ''" :style="!success ? 'transition: color 3s' : ''" :disabled="disabled['update:message']" :loading="loading['update:message']">Update</v-btn>
                             <v-btn v-if="userMessages.length" @click="actionHandler('delete:message', message._id)" prepend-icon="delete" density="compact" variant="text" :loading="loading['delete:message']">Delete</v-btn>
                         </template>
                     </v-expansion-panel>
@@ -142,13 +142,15 @@ const loading = ref({
 })
 const justLoaded = ref(false)
 const isValid = ref({
-    profileName: false,
+    profileName: store.settings.profile.name ? true : false,
     ...contactObj
 })
 const disabled = computed(() => ({
-    add: !Object.values(isValid.value)?.every(valid => valid),
-    okay: !isValid.value.profileName,
-    update: JSON.stringify(contact.value) === JSON.stringify(contactDiff.value)
+    'create:contact': ![isValid.value['name'], isValid.value['email'], isValid.value['relationship']].every(valid => valid),
+    'update:contact': JSON.stringify(contact.value) === JSON.stringify(contactDiff.value),
+    'create:message': false,
+    'update:message': JSON.stringify(message.value) === JSON.stringify(messageDiff.value),
+    okay: !isValid.value.profileName || !store.settings.emergencyContact.contacts.length
 }))
 const rules = {
     email: [
@@ -171,7 +173,6 @@ const rules = {
 watch(() => dialog, value => emit('update:modelValue', value))
 watch(() => props.modelValue, value => dialog.value = value)
 watch(() => props.updatedContact, value => {
-    debugger
     if (value) {
         loading.value.default = false
         justLoaded.value = true
