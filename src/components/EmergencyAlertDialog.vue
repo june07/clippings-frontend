@@ -48,10 +48,10 @@ const flatPickrConfig = ref({
 	disable: [
 		{
 			from: new Date(264330300000),
-			to: new Date(Date.now() + 3_600_000),
+			to: new Date(Date.now() + 3_660_000),
 		},
 	],
-    minDate: new Date(Date.now() + 3_600_000)
+    minDate: new Date(Date.now() + 3_660_000)
 })
 const store = useAppStore()
 const props = defineProps({
