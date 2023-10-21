@@ -13,7 +13,10 @@
                     <div class="text-overline">emergency message</div>
                     <v-select v-model="alert.message" :items="store.settings.emergencyContact.messages" item-title="title" item-value="_id" />
                     <div class="text-overline">time to send message</div>
-                    <flat-pickr ref="calendar" v-model="alert.sendAt" :config="flatPickrConfig" placeholder="Select time" name="time" />
+                    <div class="d-flex">
+                        <flat-pickr style="min-width: 150px" ref="calendar" v-model="alert.sendAt" :config="flatPickrConfig" placeholder="Select time" name="time" />
+                        <div class="ml-4">({{ timeFromNow }})</div>
+                    </div>
                 </div>
                 <div class="mt-8">
                     You just need to click "Okay" and you're all set. Remember to cancel this emergency alert after you safely arrive back from your meetup.
@@ -36,15 +39,20 @@
 }
 </style>
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useAppStore } from '@/store/app'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 import flatPickr from 'vue-flatpickr-component'
+import humanizeDuration from 'humanize-duration'
 import 'flatpickr/dist/flatpickr.css'
 
 const flatPickrConfig = ref({
     enableTime: true,
     dateFormat: "F j, Y h:i K",
+    disable: [{
+        from: new Date(264330300000),
+        to: new Date()
+    }]
 })
 const store = useAppStore()
 const props = defineProps({
@@ -58,12 +66,13 @@ const alert = ref({
     from: store.settings.profile.name,
     to: store.settings.emergencyContact.contacts.map(contact => contact._id),
     message: store.settings.emergencyContact.messages[0]?._id,
-    sendAt: Date.now() + (3 * 3_600_000)
+    sendAt: new Date(Date.now() + (3 * 3_600_000))
 })
 const calendar = ref('calendar')
 const dialog = ref(props.modelValue)
 const success = ref(false)
 const loading = ref(false)
+const timeFromNow = computed(() => humanizeDuration(Date.now() - Date.parse(alert.value.sendAt), { units: ['h', 'm'], round: true }))
 watch(() => props.created, value => {
     if (value) {
         success.value = value
