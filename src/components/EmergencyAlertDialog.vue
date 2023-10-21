@@ -48,9 +48,10 @@ const flatPickrConfig = ref({
 	disable: [
 		{
 			from: new Date(264330300000),
-			to: new Date(),
+			to: new Date(Date.now() + 3_600_000),
 		},
 	],
+    minDate: new Date(Date.now() + 3_600_000)
 })
 const store = useAppStore()
 const props = defineProps({
@@ -66,7 +67,7 @@ const alert = ref({
 	from: store.settings.profile.name,
 	to: store.settings.emergencyContact.contacts.map(contact => contact._id),
 	message: store.settings.emergencyContact.messages[0]?._id,
-	sendAt: new Date(Date.now() + 3 * 3_600_000),
+	sendAt: new Date(Date.now() + (3 * 3_600_000)),
 })
 const calendar = ref('calendar')
 const dialog = ref(props.modelValue)
