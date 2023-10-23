@@ -34,7 +34,7 @@
 							<v-text-field tabindex="1" density="compact" rounded v-model="contact.name" label="name" id="name" :rules="rules.name" @change="changeHandler" />
 							<v-text-field tabindex="2" density="compact" rounded v-model="contact.email" label="email address" id="email" :rules="rules.email" @change="changeHandler" />
 							<v-text-field tabindex="3" density="compact" rounded v-model="contact.relationship" label="relationship" id="relationship" :rules="rules.relationship" @input="changeHandler" />
-							<v-btn tabindex="4" v-if="!editing" @click="actionHandler('create:contact', contact)" prepend-icon="person_add" density="compact" variant="text" :disabled="disabled['create:contact']" :loading="loading['create:contact']">Add</v-btn>
+							<v-btn tabindex="4" v-if="!editing" @click="actionHandler('create:contact', { owner: store.settings.profile, ...contact })" prepend-icon="person_add" density="compact" variant="text" :disabled="disabled['create:contact']" :loading="loading['create:contact']">Add</v-btn>
 							<v-btn v-if="editing" @click="actionHandler('update:contact', contact)" prepend-icon="save" density="compact" variant="text" :color="success ? 'green' : ''" :style="!success ? 'transition: color 3s' : ''" :disabled="disabled['update:contact']" :loading="loading['update:contact']"
 								>Update</v-btn
 							>
@@ -196,7 +196,7 @@ const isValid = ref({
 	...contactObj,
 })
 const disabled = computed(() => ({
-	'create:contact': ![isValid.value['name'], isValid.value['email'], isValid.value['relationship']].every(valid => valid),
+	'create:contact': ![isValid.value['profileName'], isValid.value['name'], isValid.value['email'], isValid.value['relationship']].every(valid => valid),
 	'update:contact': JSON.stringify(contact.value) === JSON.stringify(contactDiff.value),
 	'create:message': false,
 	'update:message': JSON.stringify(message.value) === JSON.stringify(messageDiff.value),

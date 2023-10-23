@@ -6,7 +6,8 @@
             </div>
         </v-navigation-drawer>
         <v-main>
-            <craigslist-archive v-if="location.pathname && !/^\/archive\/cl\//.test(location.pathname)" @change-theme="themeHandler" @error="errorHandler" />
+            <contact-confirmation v-if="location.pathname && /^\/contact-confirmation\//.test(location.pathname)" />
+            <craigslist-archive v-else-if="location.pathname && !/^\/archive\/cl\//.test(location.pathname)" @change-theme="themeHandler" @error="errorHandler" />
             <craigslist-archived-ad v-else-if="location.pathname" @change-theme="themeHandler" />
         </v-main>
         <v-navigation-drawer v-if="!smAndDown" order="2" width="200" floating location="right">
@@ -42,6 +43,7 @@ import { useDisplay } from 'vuetify/lib/framework.mjs'
 
 import CraigslistArchive from '@/views/CraigslistArchive.vue'
 import CraigslistArchivedAd from '@/views/CraigslistArchivedAd.vue'
+import ContactConfirmation from '@/views/ContactConfirmation.vue'
 
 const error = ref(false)
 const { smAndDown } = useDisplay()

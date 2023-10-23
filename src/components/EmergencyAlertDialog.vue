@@ -48,7 +48,7 @@ const flatPickrConfig = ref({
 	disable: [
 		{
 			from: new Date(264330300000),
-			to: new Date(Date.now() + 3_660_000),
+			to: new Date(Date.now() - 86_400_000),
 		},
 	],
     minDate: new Date(Date.now() + 3_660_000)
