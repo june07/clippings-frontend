@@ -93,7 +93,8 @@
 							</v-chip>
 						</template>
 						<template v-slot:title>
-							<div class="font-weight-medium">{{ listAlert.listingPid }} (to: {{ listAlert.to.map(to => to.name).join(',') }})</div>
+							<div class="font-weight-medium">
+                                <a style="text-decoration: none" :href="getWebURL(listAlert.listingPid)" target="_blank" rel="noopener">{{ listAlert.listingPid }}</a> (to: {{ listAlert.to.map(to => to.name).join(',') }})</div>
 						</template>
 						<template v-slot:subtitle>
 							<div class="text-caption">Sending on {{ new Date(listAlert.sendAt).toLocaleString() }}</div>
@@ -130,11 +131,12 @@
 }
 </style>
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, inject } from 'vue'
 import { useAppStore } from '@/store/app'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 import 'animate.css'
 
+const getWebURL = inject('getWebURL')
 const store = useAppStore()
 const props = defineProps({
 	modelValue: Boolean,
