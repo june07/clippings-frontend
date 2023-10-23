@@ -8,7 +8,7 @@
             <v-card-subtitle><span style="text-wrap: pretty">{{ archiveData.listingURL }}</span></v-card-subtitle>
             <v-card-text>
                 <v-btn v-if="!alert" variant="text" density="compact" color="red-accent-4" text="Set Alert" prepend-icon="emergency_share" @click="dialogs.emergencyAlert = !dialogs.emergencyAlert" :loading="loading['create:alert']" />
-                <v-alert v-else-if="!alert.receipt" type="warning" variant="outlined" :title="`Alert set to send at ${new Date(alert.sendAt).toLocaleString()}`" text="Your emergency contacts will receive your message if you fail to cancel this alert before the set time.">
+                <v-alert v-else-if="!alert.receipt" type="warning" variant="outlined" :title="`Alert set to send at ${new Date(alert.sendAt).toLocaleString()}`" text="Your emergency contact(s) will receive your message if you fail to cancel this alert before the set time.">
                     <template v-slot:append>
                         <v-btn variant="text" density="compact" color="red-accent-4" :text="smAndDown ? undefined : 'Delete Alert'" :prepend-icon="smAndDown ? undefined : 'emergency_share'" :icon="smAndDown ? 'delete' : undefined" @click="actionHandler({ deleteAlert: { _id: alert._id } })" :loading="loading['delete:alert']" />
                     </template>
