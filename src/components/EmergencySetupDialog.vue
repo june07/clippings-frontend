@@ -12,22 +12,16 @@
 				<div v-if="store.settings.emergencyContact.contacts.length">
 					<span class="text-overline">Current Emergency Contacts</span>
 					<v-list lines="one">
-						<v-list-item
-							v-for="listContact of store.settings.emergencyContact.contacts"
-							:key="listContact._id"
-							:title="listContact.name"
-							@click="setActiveContactHandler(listContact)"
-							:class="listItemClass('contact', listContact._id)"
-							:style="!success && justLoaded ? 'transition: background-color 3s' : ''">
+						<v-list-item v-for="listContact of store.settings.emergencyContact.contacts" :key="listContact._id" :title="listContact.name" @click="setActiveContactHandler(listContact)" :class="listItemClass('contact', listContact._id)" :style="!success && justLoaded ? 'transition: background-color 3s' : ''">
 							<template v-slot:prepend>
 								<v-avatar size="large" color="amber-lighten-4">
 									<span class="text-h5 text-capitalize">{{ listContact.name.substring(0, 1) }}</span>
 								</v-avatar>
 							</template>
-                            <template v-slot:subtitle>
-                                {{ listContact.email }}
-                                <span :class="listContact.optedIn ? 'text-green' : 'text-red'" class="font-italic font-weight-medium ml-2">{{ listContact.optedIn ? '(confirmed)' : '(not confirmed)' }}</span>
-                            </template>
+							<template v-slot:subtitle>
+								{{ listContact.email }}
+								<span :class="listContact.optedIn ? 'text-green' : 'text-red'" class="font-italic font-weight-medium ml-2">{{ listContact.optedIn ? '(confirmed)' : '(not confirmed)' }}</span>
+							</template>
 						</v-list-item>
 					</v-list>
 				</div>
@@ -41,7 +35,7 @@
 							<v-btn v-if="editing" @click="actionHandler('update:contact', contact)" prepend-icon="save" density="compact" variant="text" :color="success ? 'green' : ''" :style="!success ? 'transition: color 3s' : ''" :disabled="disabled['update:contact']" :loading="loading['update:contact']"
 								>Update</v-btn
 							>
-							<v-btn v-if="editing" @click="actionHandler('delete:contact', { _id: contact._id })" prepend-icon="delete" density="compact" variant="text" :loading="loading['delete:contact']">Delete</v-btn>
+							<v-btn v-if="editing" @click="actionHandler('delete:contact', { _id: contact._id })" prepend-icon="delete" density="compact" variant="text" :loading="loading[`delete:alert-${listAlert._id}`]">Delete</v-btn>
 							<v-btn v-if="editing" @click="cancelEditHandler" prepend-icon="cancel" density="compact" variant="text">Cancel</v-btn>
 						</template>
 					</v-expansion-panel>
@@ -105,7 +99,7 @@
 							<div class="text-caption">Sending on {{ new Date(listAlert.sendAt).toLocaleString() }}</div>
 						</template>
 						<template v-slot:append>
-							<v-btn @click="actionHandler('delete:alert', { _id: listAlert._id })" density="compact" variant="plain" :loading="loading['delete:alert']">Cancel</v-btn>
+							<v-btn @click="actionHandler('delete:alert', { _id: listAlert._id })" density="compact" variant="plain" :loading="loading[`delete:alert-${listAlert._id}`]">Cancel</v-btn>
 						</template>
 					</v-list-item>
 				</v-list>
@@ -298,9 +292,19 @@ function setActiveMessageHandler(activeMessage) {
 	}
 }
 function actionHandler(action, value) {
+	const loadingKey = value._id && `${action}-${value._id}`
+
 	loading.value[action] = true
+	if (loadingKey) {
+		loading.value[loadingKey] = true
+	}
 	emit(action, value)
-	setTimeout(() => (loading.value[action] = false), 5000)
+	setTimeout(() => {
+		loading.value[action] = false
+		if (loadingKey) {
+			loading.value[loadingKey] = false
+		}
+	}, 5000)
 }
 function cancelEditHandler() {
 	editing.value = false
