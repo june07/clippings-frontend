@@ -16,7 +16,6 @@
 							v-for="listContact of store.settings.emergencyContact.contacts"
 							:key="listContact._id"
 							:title="listContact.name"
-							:subtitle="listContact.email"
 							@click="setActiveContactHandler(listContact)"
 							:class="listItemClass('contact', listContact._id)"
 							:style="!success && justLoaded ? 'transition: background-color 3s' : ''">
@@ -25,6 +24,10 @@
 									<span class="text-h5 text-capitalize">{{ listContact.name.substring(0, 1) }}</span>
 								</v-avatar>
 							</template>
+                            <template v-slot:subtitle>
+                                {{ listContact.email }}
+                                <span :class="listContact.optedIn ? 'text-green' : 'text-red'" class="font-italic font-weight-medium ml-2">{{ listContact.optedIn ? '(confirmed)' : '(not confirmed)' }}</span>
+                            </template>
 						</v-list-item>
 					</v-list>
 				</div>
