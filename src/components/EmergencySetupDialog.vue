@@ -32,7 +32,7 @@
 							<v-text-field tabindex="2" density="compact" rounded v-model="contact.email" label="email address" id="email" :rules="rules.email" @change="changeHandler" />
 							<v-text-field tabindex="3" density="compact" rounded v-model="contact.relationship" label="relationship" id="relationship" :rules="rules.relationship" @input="changeHandler" />
 							<v-btn tabindex="4" v-if="!editing" @click="actionHandler('create:contact', { owner: store.settings.profile, ...contact })" prepend-icon="person_add" density="compact" variant="text" :disabled="disabled['create:contact']" :loading="loading['create:contact']">Add</v-btn>
-							<v-btn v-if="editing" @click="actionHandler('update:contact', contact)" prepend-icon="save" density="compact" variant="text" :color="success ? 'green' : ''" :style="!success ? 'transition: color 3s' : ''" :disabled="disabled['update:contact']" :loading="loading['update:contact']"
+							<v-btn v-if="editing" @click="actionHandler('update:contact', { owner: store.settings.profile, ...contact })" prepend-icon="save" density="compact" variant="text" :color="success ? 'green' : ''" :style="!success ? 'transition: color 3s' : ''" :disabled="disabled['update:contact']" :loading="loading['update:contact']"
 								>Update</v-btn
 							>
 							<v-btn v-if="editing" @click="actionHandler('delete:contact', { _id: contact._id })" prepend-icon="delete" density="compact" variant="text" :loading="loading[listAlert ? `delete:alert-${listAlert._id}` : 'delete:alert']">Delete</v-btn>
