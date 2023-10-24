@@ -35,7 +35,7 @@
 							<v-btn v-if="editing" @click="actionHandler('update:contact', contact)" prepend-icon="save" density="compact" variant="text" :color="success ? 'green' : ''" :style="!success ? 'transition: color 3s' : ''" :disabled="disabled['update:contact']" :loading="loading['update:contact']"
 								>Update</v-btn
 							>
-							<v-btn v-if="editing" @click="actionHandler('delete:contact', { _id: contact._id })" prepend-icon="delete" density="compact" variant="text" :loading="loading[`delete:alert-${listAlert._id}`]">Delete</v-btn>
+							<v-btn v-if="editing" @click="actionHandler('delete:contact', { _id: contact._id })" prepend-icon="delete" density="compact" variant="text" :loading="loading[listAlert ? `delete:alert-${listAlert._id}` : 'delete:alert']">Delete</v-btn>
 							<v-btn v-if="editing" @click="cancelEditHandler" prepend-icon="cancel" density="compact" variant="text">Cancel</v-btn>
 						</template>
 					</v-expansion-panel>
