@@ -129,15 +129,15 @@
 				</div>
 			</v-card-text>
 			<v-card-actions class="d-flex flex-column justify-center mt-8">
-				<v-progress-circular v-if="loading.archive" indeterminate :size="200" width="1" color="amber">
+				<v-progress-circular :color="progressColor" v-if="loading.archive" indeterminate :size="200" :width="progressWidth">
 					<v-btn v-if="!archiveData[listingPid]" :variant="loading.archive ? 'plain' : 'tonal'" @click="archiveHandler" :disabled="archiveData[listingPid] || archiveWaitingToBeReady !== undefined ? true : false">
-						<div class="text-weight-light" :class="loading.archive ? 'animate__animated animate__pulse animate__infinite' : ''">{{ loading.archive ? 'saving' : 'save' }}</div>
+						<div class="text-weight-light" :class="!error && loading.archive ? 'animate__animated animate__pulse animate__infinite' : ''">{{ loading.archive ? 'saving' : 'save' }}</div>
 					</v-btn>
 					<v-btn v-else variant="tonal" @click="resetHandler">save another</v-btn>
 				</v-progress-circular>
 				<div v-else :class="!store.subscribed.daily ? 'mb-8' : ''">
 					<v-btn v-if="!archiveData[listingPid]" variant="tonal" rounded @click="archiveHandler" :disabled="archiveData[listingPid] || archiveWaitingToBeReady !== undefined ? true : false">
-						<div class="text-weight-light" :class="loading.archive ? 'animate__animated animate__pulse animate__infinite' : ''">{{ loading.archive ? 'saving' : 'save' }}</div>
+						<div class="text-weight-light" :class="!error && loading.archive ? 'animate__animated animate__pulse animate__infinite' : ''">{{ loading.archive ? 'saving' : 'save' }}</div>
 					</v-btn>
 					<v-btn v-else variant="tonal" @click="resetHandler">save another</v-btn>
 				</div>
@@ -264,11 +264,14 @@ const { VITE_API_SERVER } = import.meta.env
 const loading = ref({
 	archive: false,
 })
+const progressColor = ref('amber')
+const progressWidth = ref(1)
 const dialogs = ref({
 	subscribed: false,
 	emergencySetup: false,
 	emergencyAlert: false,
 })
+const error = ref(false)
 const subscribed = ref(false)
 const mostRecentListings = ref([])
 const mostRecentDiscussions = ref([])
@@ -533,6 +536,22 @@ onMounted(() => {
 				clearInterval(intervals.value.checkArchiveLinkActive)
 			}, 300000)
 		})
+        .on('error', errorMessage => {
+            const defaultColor = progressColor.value
+            const defaultWidth = progressWidth.value
+            progressColor.value = 'red'
+            progressWidth.value = 2
+            error.value = true
+            setTimeout(() => {
+                error.value = false
+                loading.value.archive = false
+                setTimeout(() => {
+                    progressColor.value = defaultColor
+                    progressWidth.value = defaultWidth
+                })
+            }, 2500)
+            emit('error', errorMessage)
+        })
 	setTimeout(() => {
 		;(isMounted.value = true), 11000
 	})

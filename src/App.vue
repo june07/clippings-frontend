@@ -18,7 +18,7 @@
         <v-snackbar text :timeout="-1" v-model="snackbar.active" style="opacity: 0.9" @click="snackbarCloseHandler">
             <v-row>
                 <v-col cols="1" class="d-flex align-center justify-center">
-                    <v-icon :icon="snackbar.icon" />
+                    <v-icon :icon="snackbar.icon" :color="snackbar.iconColor"/>
                 </v-col>
                 <v-col cols="10" class="d-flex align-center justify-center">
                     <span v-if="error">{{ snackbar.message }}</span>
@@ -83,6 +83,7 @@ function errorHandler(errorMessage) {
     snackbar.value = {
         active: true,
         icon: 'error',
+        iconColor: 'red',
         message: errorMessage
     }
 }
