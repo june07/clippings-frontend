@@ -83,10 +83,14 @@
                     </v-expansion-panel>
                     -->
 				</v-expansion-panels>
-				<div class="text-overline mt-8">Set Emergency Alerts</div>
+				<div class="d-flex align-center mt-8">
+                    <div class="text-overline">Set Emergency Alerts</div>
+                    <v-spacer />
+                    <v-checkbox v-model="filterSent" class="d-flex justify-end text-overline text-no-wrap mr-8">filter sent</v-checkbox>
+                </div>
 				<div v-if="!store.alerts.emergency.length" class="text-center">no alerts set</div>
 				<v-list v-else lines="one">
-					<v-list-item v-for="(listAlert, index) of store.alerts.emergency" :key="listAlert._id" :class="listItemClass('alert', listAlert._id)" :style="!success && justLoaded ? 'transition: background-color 3s' : ''">
+					<v-list-item v-for="(listAlert, index) of eAlerts" :key="listAlert._id" :class="listItemClass('alert', listAlert._id)" :style="!success && justLoaded ? 'transition: background-color 3s' : ''">
 						<template v-slot:prepend>
 							<v-chip size="small" color="red-darken-2" class="mr-4">
 								<span class="text-h6 text-capitalize">{{ index + 1 }}</span>
@@ -97,10 +101,11 @@
                                 <a style="text-decoration: none" :href="getWebURL(listAlert.listingPid)" target="_blank" rel="noopener">{{ listAlert.listingPid }}</a> (to: {{ listAlert.to.map(to => to.name).join(',') }})</div>
 						</template>
 						<template v-slot:subtitle>
-							<div class="text-caption">Sending on {{ new Date(listAlert.sendAt).toLocaleString() }}</div>
+							<div v-if="!listAlert.receipt?.sentAt" class="text-caption">Sending on {{ new Date(listAlert.sendAt).toLocaleString() }}</div>
+                            <div v-else class="text-caption text-green">Sent on {{ new Date(listAlert.receipt.sentAt).toLocaleString() }}</div>
 						</template>
 						<template v-slot:append>
-							<v-btn @click="actionHandler('delete:alert', { _id: listAlert._id })" density="compact" variant="plain" :loading="loading[`delete:alert-${listAlert._id}`]">Cancel</v-btn>
+							<v-btn v-if="!listAlert.receipt?.sentAt" @click="actionHandler('delete:alert', { _id: listAlert._id })" density="compact" variant="plain" :loading="loading[`delete:alert-${listAlert._id}`]">Cancel</v-btn>
 						</template>
 					</v-list-item>
 				</v-list>
@@ -155,6 +160,7 @@ const userMessages = computed(() => store.settings.emergencyContact.messages.fil
 
 const { smAndDown } = useDisplay()
 const dialog = ref(props.modelValue)
+const filterSent = ref(false)
 const editing = ref(false)
 const success = ref(false)
 const contactObj = {
@@ -162,6 +168,7 @@ const contactObj = {
 	email: undefined,
 	relationship: undefined,
 }
+const eAlerts = computed(() => filterSent.value ? store.alerts.emergency.filter(alert => !alert.receipt?.sentAt) : store.alerts.emergency)
 const contact = ref({
 	...contactObj,
 })
