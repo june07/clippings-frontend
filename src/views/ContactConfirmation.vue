@@ -5,11 +5,19 @@
 			<v-card-title class="text-center">
 				<span class="font-weight-bold">Emergency Contact Confirmed</span>
 			</v-card-title>
-			<v-card-subtitle class="text-center">Thank you {{ contact.relationship }}</v-card-subtitle>
+			<v-card-subtitle class="text-center">Thank you <span class="text-capitalize">{{ contact.relationship }}</span></v-card-subtitle>
 			<v-card-text class="text-center">
-                <v-alert type="success" variant="tonal" class="mb-4">You are now confirmed as an emergency contact for {{ contact.owner.name }}</v-alert>
-                Hopefully they never come, but in the event of an emergency, you will receive a message on the behalf of {{ contact.owner.name }}
-            </v-card-text>
+				<v-alert type="success" variant="tonal" class="mb-4">You are now confirmed as an emergency contact for {{ contact.owner.name }}</v-alert>
+                <p class="text-start text-h6 text-capitalize mb-4 mt-8">Dear {{ contact.relationship }},</p>
+				<p class="text-start text-body-1">This message confirms that you are now officially listed as an emergency contact for <span class="text-amber">{{ contact.owner.name }}</span>. While we hope such situations never arise, knowing that you are available to assist in case of an emergency provides peace of mind.</p>
+				<p class="text-start text-body-1 my-4">
+					In the unfortunate event of an emergency, you will receive a prescribed message from <span class="text-amber">{{ contact.owner.name }}</span> to help coordinate any necessary actions or provide support. Your role as an emergency contact is essential, and your dedication to this responsibility is commendable.
+				</p>
+				<p class="text-start text-body-1 my-4">Once again, thank you for being there when it matters most.</p>
+				<p class="text-start text-body-1 my-4">Sincerely,</p>
+
+				<div class="text-start font-italic text-h6 font-weight">The Clippings Team</div>
+			</v-card-text>
 		</v-card>
 		<v-spacer />
 	</v-container>
