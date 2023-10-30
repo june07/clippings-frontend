@@ -20,7 +20,7 @@
 			<p :class="smAndDown ? 'text-body-2 mb-2' : 'text-body-1 mb-8'"></p>
 		</v-card>
 		<v-spacer />
-		<v-card rounded="xl" class="pa-4 mb-2" :width="smAndDown ? '-webkit-fill-available' : '800px'" :elevation="loading.archive ? 0 : 2" color="amber-lighten-4">
+		<v-card rounded="xl" class="pa-4 mb-2 mt-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" :elevation="loading.archive ? 0 : 2" color="amber-lighten-4">
 			<v-card-title class="font-weight-medium text-center">{{ loading.archive ? 'Archiving' : 'Archive an' }} ad ✂️</v-card-title>
 			<v-card-subtitle v-if="!loading.archive" class="font-weight-medium text-center">Enter the link to the ad you want to archive</v-card-subtitle>
 			<v-card-subtitle v-else class="font-weight-light text-center font-caption text-wrap">{{ smAndDown ? shortenAdURL(store.textField) : store.textField }}</v-card-subtitle>
