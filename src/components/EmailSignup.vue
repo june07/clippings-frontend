@@ -3,7 +3,7 @@
         <div v-if="!store.subscribed.daily">
             <div class="text-caption text-center" v-html="title"></div>
             <v-form class="d-flex align-center">
-                <v-btn variant="text" color="amber" size="small" class="mr-2" text="subscribe" :disabled="!isValid || loading" @click="clickHandler" :loading="loading" />
+                <v-btn variant="tonal" rounded color="black" size="small" class="mr-2" text="subscribe" :disabled="!isValid || loading" @click="clickHandler" :loading="loading" />
                 <v-text-field validate-on="lazy" density="compact" variant="outlined" rounded="lg" v-model="store.textFieldEmail" hide-details :rules="rules.email" placeholder="email address" @input="changeHandler" />
             </v-form>
         </div>

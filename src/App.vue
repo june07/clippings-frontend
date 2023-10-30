@@ -33,7 +33,8 @@
 </template>
 <style>
 html {
-    font-stretch: condensed !important
+    font-stretch: condensed !important;
+    font-size: large !important;
 }
 </style>
 <script setup>

@@ -1,0 +1,19 @@
+<mjml>
+	<mj-body>
+		<mj-section>
+			<mj-column>
+				<mj-image width="100px" src="https://clippings.june07.com/layer-svgrepo-com.png"></mj-image>
+
+				<mj-divider border-color="#FFC107"></mj-divider>
+
+				<mj-text font-size="20px" font-family="OpenSans">{{from}} has added you as an emergency contact.</mj-text>
+
+				<mj-text font-size="20px" font-family="OpenSans">Please click the Confirm link below so we know that it's okay to contact you on behalf of {{from}} in case of an emergency.</mj-text>
+
+				<mj-button background-color="#FFC107" href="https://clippings.june07.com/contact-confirmation/{{code}}">Confirm</mj-button>
+
+				<mj-text font-size="20px" font-family="OpenSans">You can read more about why you received this message and what Clippings is here: <a href="https://june07.com/introduction-clippings/">https://june07.com/introduction-clippings/</a></mj-text>
+			</mj-column>
+		</mj-section>
+	</mj-body>
+</mjml>

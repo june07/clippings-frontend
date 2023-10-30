@@ -2,12 +2,12 @@
 	<v-container class="h-100 d-flex align-center justify-center flex-column" fluid>
 		<nav-header @changeTheme="$emit('changeTheme')" v-model="location" />
 		<v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="location.pathname === '/home'">
-			<p :class="smAndDown ? 'text-h5' : 'text-h4'" class="mb-8"><span class="font-weight-bold">Clippings</span><span class="font-italic"> is your modern-day archival tool for online classified ads...</span> like Craigslist!</p>
+			<p :class="smAndDown ? 'text-h5' : 'text-h4'" class="mb-2"><span class="font-weight-bold">Clippings</span><span class="font-italic"> is your modern-day archival tool for online classified ads...</span> like Craigslist!</p>
 			<p :class="smAndDown ? 'text-body-2' : 'text-body-1'">
-				Clippings is your modern-day archival tool for online classified ads, reminiscent of the days when we used to clip newspaper ads. It captures and securely stores ad snapshots in the cloud, ensuring they're always accessible—even if the original poster or anyone else removes them.
+				It captures and securely stores ad snapshots in the cloud, ensuring they're always accessible—even if the original poster or anyone else removes them.
 			</p>
 			<div class="d-flex justify-center">
-				<ul class="mt-4 font-weight-bold text-body-2">
+				<ul class="mt-4 font-weight-bold text-body-2" :class="smAndDown ? 'ml-1' : ''">
 					<li>Ads archived to robust/permanent cloud location (<a href="https://github.com/" rel="noopener" target="_blank">GitHub</a>)</li>
 					<li>No fussing with screenshots or storing files on your own device</li>
 					<li>
@@ -17,44 +17,12 @@
 					<li>Read more about Clippings on <a href="https://news.ycombinator.com/item?id=37860172" rel="noopener" target="_blank">Hacker News</a></li>
 				</ul>
 			</div>
-			<v-banner v-if="!store.banners.share.disabled" :lines="smAndDown ? 'three' : 'two'" color="info" icon="info" class="mt-4 mx-auto" :class="smAndDown ? 'pa-4' : 'px-4'" elevation="12" rounded="xl" :max-width="smAndDown ? undefined : '70%'">
-				<template v-slot:prepend>
-					<social-share v-if="smAndDown" size="50" :density="smAndDown ? 'compact' : 'default'" :icon="smAndDown ? 'share' : undefined" :url="location.href" color="amber" />
-					<v-icon v-else icon="info" color="info" size="50" />
-				</template>
-				<template v-slot:text>
-					<span :class="smAndDown ? 'text-body-2' : ''">🚀 Help Us Grow! Please Share Clippings with Your Social Network 🌟</span>
-					<social-share v-if="!smAndDown" size="small" :density="smAndDown ? 'compact' : 'default'" :icon="smAndDown ? 'share' : undefined" :url="location.href" color="amber" />
-				</template>
-
-				<template v-slot:actions v-if="!smAndDown">
-					<v-btn @click="store.banners.share.disabled = true" icon="close" size="x-small" />
-				</template>
-			</v-banner>
-			<p :class="smAndDown ? 'text-body-2' : 'text-body-1'" class="mb-8"></p>
+			<p :class="smAndDown ? 'text-body-2 mb-2' : 'text-body-1 mb-8'"></p>
 		</v-card>
 		<v-spacer />
-		<v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentListings?.length" :class="smAndDown ? 'pl-0' : ''">
-			<v-card-title class="font-weight-light text-center">Most recently archived ads 🆕</v-card-title>
-			<v-card-text class="font-weight-light" :class="smAndDown ? 'pl-0' : ''">
-				<v-sheet rounded="xl" class="pa-4" :class="smAndDown ? 'pl-0' : ''">
-					<div class="d-flex align-center" v-for="mostRecentListing of mostRecentListings">
-						<social-share size="small" density="compact" :icon="smAndDown ? 'share' : undefined" :url="getWebURL(mostRecentListing.listingPid)" color="amber-lighten-2" :text="smAndDown ? undefined : 'share'" />
-
-						<v-btn variant="plain" size="small" density="compact" color="orange" :href="getCodeURL(mostRecentListing.listingPid)" target="_blank" class="pl-0" :prepend-icon="smAndDown ? undefined : 'code'" :icon="smAndDown ? 'code' : undefined" :text="smAndDown ? undefined : 'git'" />
-
-						<v-btn variant="plain" size="small" density="compact" color="blue" :href="getArchiveURL(mostRecentListing.listingPid)" target="_blank" class="pl-0" :prepend-icon="smAndDown ? undefined : 'link'" :icon="smAndDown ? 'link' : undefined" :text="smAndDown ? undefined : 'static'" />
-
-						<a style="text-decoration: none" :href="getWebURL(mostRecentListing.listingPid)" class="pl-0">
-							<div class="text-caption text-truncate"><v-icon icon="web" class="mr-2" color="green" />{{ mostRecentListing.metadata?.title }}</div>
-						</a>
-					</div>
-				</v-sheet>
-			</v-card-text>
-		</v-card>
-		<v-card rounded="xl" class="pa-4 mt-2" :width="smAndDown ? '-webkit-fill-available' : '800px'" :elevation="loading.archive ? 0 : 2">
-			<v-card-title class="font-weight-light text-center">{{ loading.archive ? 'Archiving' : 'Archive an' }} ad ✂️</v-card-title>
-			<v-card-subtitle v-if="!loading.archive" class="font-weight-light text-center">Enter the link to the ad you want to archive</v-card-subtitle>
+		<v-card rounded="xl" class="pa-4 mb-2" :width="smAndDown ? '-webkit-fill-available' : '800px'" :elevation="loading.archive ? 0 : 2" color="amber-lighten-4">
+			<v-card-title class="font-weight-medium text-center">{{ loading.archive ? 'Archiving' : 'Archive an' }} ad ✂️</v-card-title>
+			<v-card-subtitle v-if="!loading.archive" class="font-weight-medium text-center">Enter the link to the ad you want to archive</v-card-subtitle>
 			<v-card-subtitle v-else class="font-weight-light text-center font-caption text-wrap">{{ smAndDown ? shortenAdURL(store.textField) : store.textField }}</v-card-subtitle>
 			<v-card-text v-show="!loading.archive" class="pa-0 mt-8">
 				<v-text-field validate-on="lazy" density="compact" variant="outlined" rounded="lg" v-model="store.textField" persistent-hint hint="Any Craigslist ad link" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url">
@@ -144,7 +112,25 @@
 				<email-signup type="daily" @signup="emailSignupHandler" :subscribed="subscribed" />
 			</v-card-actions>
 		</v-card>
-		<v-card rounded="xl" class="pa-4 mt-2" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentDiscussions?.length">
+        <v-card rounded="xl" class="pa-4 pb-0" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentListings?.length" :class="smAndDown ? 'pl-0' : ''">
+			<v-card-title class="font-weight-light text-center">Most recently archived ads 🆕</v-card-title>
+			<v-card-text class="font-weight-light pb-0" :class="smAndDown ? 'pl-0' : ''">
+				<v-sheet rounded="xl" class="pa-4" :class="smAndDown ? 'pl-0' : ''">
+					<div class="d-flex align-center" v-for="mostRecentListing of mostRecentListings">
+						<social-share size="small" density="compact" :icon="smAndDown ? 'share' : undefined" :url="getWebURL(mostRecentListing.listingPid)" color="amber-lighten-2" :text="smAndDown ? undefined : 'share'" />
+
+						<v-btn variant="plain" size="small" density="compact" color="orange" :href="getCodeURL(mostRecentListing.listingPid)" target="_blank" class="pl-0" :prepend-icon="smAndDown ? undefined : 'code'" :icon="smAndDown ? 'code' : undefined" :text="smAndDown ? undefined : 'git'" />
+
+						<v-btn variant="plain" size="small" density="compact" color="blue" :href="getArchiveURL(mostRecentListing.listingPid)" target="_blank" class="pl-0" :prepend-icon="smAndDown ? undefined : 'link'" :icon="smAndDown ? 'link' : undefined" :text="smAndDown ? undefined : 'static'" />
+
+						<a style="text-decoration: none" :href="getWebURL(mostRecentListing.listingPid)" class="pl-0">
+							<div class="text-caption text-truncate"><v-icon icon="web" class="mr-2" color="green" />{{ mostRecentListing.metadata?.title }}</div>
+						</a>
+					</div>
+				</v-sheet>
+			</v-card-text>
+		</v-card>
+		<v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentDiscussions?.length">
 			<v-card-title class="font-weight-light text-center text-amber">Most recent ad comments 💬</v-card-title>
 			<v-card-text class="font-weight-light">
 				<v-list lines="two">
@@ -167,6 +153,20 @@
 					</v-sheet>
 				</v-list>
 			</v-card-text>
+            <v-banner v-if="!store.banners.share.disabled" :lines="smAndDown ? 'three' : 'two'" color="info" icon="info" class="mt-4 mx-auto" :class="smAndDown ? 'pa-4' : 'px-4'" elevation="12" rounded="xl" :max-width="smAndDown ? undefined : '70%'">
+				<template v-slot:prepend>
+					<social-share v-if="smAndDown" size="50" :density="smAndDown ? 'compact' : 'default'" :icon="smAndDown ? 'share' : undefined" :url="location.href" color="amber" />
+					<v-icon v-else icon="info" color="info" size="50" />
+				</template>
+				<template v-slot:text>
+					<span :class="smAndDown ? 'text-body-2' : ''">🚀 Help Us Grow! Please Share Clippings with Your Social Network 🌟</span>
+					<social-share v-if="!smAndDown" size="small" :density="smAndDown ? 'compact' : 'default'" :icon="smAndDown ? 'share' : undefined" :url="location.href" color="amber" />
+				</template>
+
+				<template v-slot:actions v-if="!smAndDown">
+					<v-btn @click="store.banners.share.disabled = true" icon="close" size="x-small" />
+				</template>
+			</v-banner>
 		</v-card>
 		<v-spacer />
 		<v-dialog transition="dialog-bottom-transition" width="auto" :min-width="smAndDown ? '100%' : undefined" :max-width="smAndDown ? undefined : 700" v-model="dialogs.subscribed" @update:modelValue="store.confirmed = Date.now()">
