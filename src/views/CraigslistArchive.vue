@@ -20,9 +20,9 @@
 			<p :class="smAndDown ? 'text-body-2 mb-2' : 'text-body-1 mb-8'"></p>
 		</v-card>
 		<v-spacer />
-		<v-card rounded="xl" class="pa-4 mb-2 mt-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" :elevation="loading.archive ? 0 : 2" color="amber-lighten-4">
-			<v-card-title class="font-weight-medium text-center">{{ loading.archive ? 'Archiving' : 'Archive an' }} ad ✂️</v-card-title>
-			<v-card-subtitle v-if="!loading.archive" class="font-weight-medium text-center">Enter the link to the ad you want to archive</v-card-subtitle>
+		<v-card rounded="xl" class="pa-4 mb-2 mt-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" :elevation="0" variant="outlined" id="archive-card">
+			<v-card-title class="font-weight-medium text-center pb-0">{{ loading.archive ? 'Archiving' : 'Archive an' }} ad now ✂️</v-card-title>
+			<v-card-subtitle v-if="!loading.archive" class="font-weight-medium text-center">Enter ad link and click save</v-card-subtitle>
 			<v-card-subtitle v-else class="font-weight-light text-center font-caption text-wrap">{{ smAndDown ? shortenAdURL(store.textField) : store.textField }}</v-card-subtitle>
 			<v-card-text v-show="!loading.archive" class="pa-0 mt-8">
 				<v-text-field validate-on="lazy" density="compact" variant="outlined" rounded="lg" v-model="store.textField" persistent-hint hint="Any Craigslist ad link" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url">
@@ -229,6 +229,10 @@
 
 :deep() .v-text-field .v-input__prepend {
 	margin-right: 0;
+}
+#archive-card {
+    border-color: #FFECB3;
+    border-width: 1px;
 }
 </style>
 <script setup>
