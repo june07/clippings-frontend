@@ -2,7 +2,7 @@
 	<v-container class="h-100 d-flex align-center justify-center flex-column" fluid>
 		<nav-header @changeTheme="$emit('changeTheme')" v-model="location" />
 		<v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="location.pathname === '/home'">
-			<p :class="smAndDown ? 'text-h5' : 'text-h4'" class="mb-2"><span class="font-weight-bold">Clippings</span><span class="font-italic"> is your modern-day archival tool for online classified ads...</span> like Craigslist!</p>
+			<p :class="smAndDown ? 'text-h5' : 'text-h4'" class="mb-2"><span class="font-weight-bold">Clippings</span><span class="font-italic"> is your FREE open-source archival tool for online classified ads...</span> like Craigslist!</p>
 			<p :class="smAndDown ? 'text-body-2' : 'text-body-1'">
 				It captures and securely stores ad snapshots in the cloud, ensuring they're always accessible—even if the original poster or anyone else removes them.
 			</p>
