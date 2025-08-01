@@ -1,6 +1,6 @@
 {
   "name": "craigslist",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scripts": {
     "dev": "vite",
     "build": "VITE_DEBUG=true vite build",
@@ -10,32 +10,33 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@giscus/vue": "^2.3.0",
+    "@giscus/vue": "^3.1.1",
+    "@novnc/novnc": "^1.5.0",
     "animate.css": "^4.1.1",
-    "async": "^3.2.4",
-    "axios": "^1.5.0",
-    "cookie": "^0.5.0",
-    "humanize-duration": "^3.30.0",
-    "lightgallery": "^2.7.2",
-    "nanoid": "^5.0.2",
-    "pinia": "^2.0.23",
-    "pinia-plugin-persistedstate": "^3.1.0",
-    "socket.io-client": "^4.6.1",
-    "vue": "^3.3.4",
-    "vue-flatpickr-component": "^11.0.3",
+    "async": "^3.2.6",
+    "axios": "^1.11.0",
+    "cookie": "^1.0.2",
+    "humanize-duration": "^3.33.0",
+    "lightgallery": "^2.9.0-beta.1",
+    "nanoid": "^5.1.5",
+    "pinia": "^3.0.3",
+    "pinia-plugin-persistedstate": "^4.4.1",
+    "socket.io-client": "^4.8.1",
+    "vue": "^3.5.18",
+    "vue-flatpickr-component": "^12.0.0",
     "vue-social-sharing": "^4.0.0-alpha4",
-    "vuetify": "^3.3.13"
+    "vuetify": "^3.9.3"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^3.0.3",
-    "@vitest/ui": "^0.29.7",
-    "eslint": "^8.22.0",
-    "eslint-plugin-vue": "^9.3.0",
-    "happy-dom": "^8.9.0",
-    "msw": "^1.2.0",
-    "sass": "^1.62.1",
-    "vite": "^3.1.9",
-    "vite-plugin-pwa": "^0.16.5",
-    "vite-plugin-vuetify": "^1.0.0-alpha.12"
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitest/ui": "^3.2.4",
+    "eslint": "^9.32.0",
+    "eslint-plugin-vue": "^10.4.0",
+    "happy-dom": "^18.0.1",
+    "msw": "^2.10.4",
+    "sass": "^1.89.2",
+    "vite": "^7.0.6",
+    "vite-plugin-pwa": "^1.0.2",
+    "vite-plugin-vuetify": "^2.1.2"
   }
 }

@@ -3,9 +3,7 @@
 		<nav-header @changeTheme="$emit('changeTheme')" v-model="location" />
 		<v-card rounded="xl" class="pa-4" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="location.pathname === '/home'">
 			<p :class="smAndDown ? 'text-h5' : 'text-h4'" class="mb-2"><span class="font-weight-bold">Clippings</span><span class="font-italic"> is your FREE open-source archival tool for online classified ads...</span> like Craigslist!</p>
-			<p :class="smAndDown ? 'text-body-2' : 'text-body-1'">
-				It captures and securely stores ad snapshots in the cloud, ensuring they're always accessible—even if the original poster or anyone else removes them.
-			</p>
+			<p :class="smAndDown ? 'text-body-2' : 'text-body-1'">It captures and securely stores ad snapshots in the cloud, ensuring they're always accessible—even if the original poster or anyone else removes them.</p>
 			<div class="d-flex justify-center">
 				<ul class="mt-4 font-weight-bold text-body-2" :class="smAndDown ? 'ml-1' : ''">
 					<li>Ads archived to robust/permanent cloud location (<a href="https://github.com/" rel="noopener" target="_blank">GitHub</a>)</li>
@@ -24,8 +22,8 @@
 			<v-card-title class="font-weight-medium text-center pb-0">{{ loading.archive ? 'Archiving' : 'Archive an' }} ad now ✂️</v-card-title>
 			<v-card-subtitle v-if="!loading.archive" class="font-weight-medium text-center">Enter ad link and click save</v-card-subtitle>
 			<v-card-subtitle v-else class="font-weight-light text-center font-caption text-wrap">{{ smAndDown ? shortenAdURL(store.textField) : store.textField }}</v-card-subtitle>
-			<v-card-text v-show="!loading.archive" class="pa-0 mt-8">
-				<v-text-field validate-on="lazy" density="compact" variant="outlined" rounded="lg" v-model="store.textField" persistent-hint hint="Any Craigslist ad link" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url">
+			<v-card-text class="pa-0 mt-8">
+				<v-text-field :disabled="loading.archive"  validate-on="lazy" density="compact" variant="outlined" rounded="lg" v-model="store.textField" persistent-hint hint="Any Craigslist ad link" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url">
 					<template v-slot:details>
 						<v-checkbox density="compact" hide-details class="d-flex justify-end" v-model="alertCheckbox">
 							<template v-slot:prepend>
@@ -97,7 +95,7 @@
 				</div>
 			</v-card-text>
 			<v-card-actions class="d-flex flex-column justify-center mt-8">
-				<v-progress-circular :color="progressColor" v-if="loading.archive" indeterminate :size="200" :width="progressWidth">
+				<v-progress-circular :color="progressColor" v-if="loading.archive" indeterminate :size="200" :width="progressWidth" class="mt-n8 mb-8">
 					<v-btn v-if="!archiveData[listingPid]" :variant="loading.archive ? 'plain' : 'tonal'" @click="archiveHandler" :disabled="archiveData[listingPid] || archiveWaitingToBeReady !== undefined ? true : false">
 						<div class="text-weight-light" :class="!error && loading.archive ? 'animate__animated animate__pulse animate__infinite' : ''">{{ loading.archive ? 'saving' : 'save' }}</div>
 					</v-btn>
@@ -112,7 +110,7 @@
 				<email-signup type="daily" @signup="emailSignupHandler" :subscribed="subscribed" />
 			</v-card-actions>
 		</v-card>
-        <v-card rounded="xl" class="pa-4 pb-0" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentListings?.length" :class="smAndDown ? 'pl-0' : ''">
+		<v-card rounded="xl" class="pa-4 pb-0" :width="smAndDown ? '-webkit-fill-available' : '800px'" elevation="0" v-if="mostRecentListings?.length" :class="smAndDown ? 'pl-0' : ''">
 			<v-card-title class="font-weight-light text-center">Most recently archived ads 🆕</v-card-title>
 			<v-card-text class="font-weight-light pb-0" :class="smAndDown ? 'pl-0' : ''">
 				<v-sheet rounded="xl" class="pa-4" :class="smAndDown ? 'pl-0' : ''">
@@ -153,7 +151,7 @@
 					</v-sheet>
 				</v-list>
 			</v-card-text>
-            <v-banner v-if="!store.banners.share.disabled" :lines="smAndDown ? 'three' : 'two'" color="info" icon="info" class="mt-4 mx-auto" :class="smAndDown ? 'pa-4' : 'px-4'" elevation="12" rounded="xl" :max-width="smAndDown ? undefined : '70%'">
+			<v-banner v-if="!store.banners.share.disabled" :lines="smAndDown ? 'three' : 'two'" color="info" icon="info" class="mt-4 mx-auto" :class="smAndDown ? 'pa-4' : 'px-4'" elevation="12" rounded="xl" :max-width="smAndDown ? undefined : '70%'">
 				<template v-slot:prepend>
 					<social-share v-if="smAndDown" size="50" :density="smAndDown ? 'compact' : 'default'" :icon="smAndDown ? 'share' : undefined" :url="location.href" color="amber" />
 					<v-icon v-else icon="info" color="info" size="50" />
@@ -169,6 +167,7 @@
 			</v-banner>
 		</v-card>
 		<v-spacer />
+		<vnc-dialog v-model="dialogs.vnc" :vncUrl="vncUrl" :min-width="smAndDown ? '100%' : undefined" @close="dialogs.vnc = false" />
 		<v-dialog transition="dialog-bottom-transition" width="auto" :min-width="smAndDown ? '100%' : undefined" :max-width="smAndDown ? undefined : 700" v-model="dialogs.subscribed" @update:modelValue="store.confirmed = Date.now()">
 			<v-card rounded="xl" class="pa-4" style="opacity: 0.96">
 				<v-card-title class="font-weight-light text-center">Subscribed to Clippings Chronicles</v-card-title>
@@ -231,8 +230,8 @@
 	margin-right: 0;
 }
 #archive-card {
-    border-color: #FFECB3;
-    border-width: 1px;
+	border-color: #ffecb3;
+	border-width: 1px;
 }
 </style>
 <script setup>
@@ -240,7 +239,7 @@ import { ref, onMounted, getCurrentInstance, computed, watch, inject } from 'vue
 import { useAppStore } from '@/store/app'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 import io from 'socket.io-client'
-import cookie from 'cookie'
+import * as cookie from 'cookie'
 import 'animate.css'
 import humanizeDuration from 'humanize-duration'
 
@@ -249,7 +248,9 @@ import EmailSignup from '@/components/EmailSignup.vue'
 import NavHeader from '@/components/NavHeader.vue'
 import EmergencySetupDialog from '@/components/EmergencySetupDialog.vue'
 import EmergencyAlertDialog from '@/components/EmergencyAlertDialog.vue'
+import VncDialog from '@/components/VncDialog.vue'
 
+const vncUrl = ref() //'wss://api.dev.june07.com/v1/vnc/6180')
 const emit = defineEmits(['error'])
 const { $api } = getCurrentInstance().appContext.config.globalProperties
 const intervals = ref({
@@ -274,6 +275,7 @@ const dialogs = ref({
 	subscribed: false,
 	emergencySetup: false,
 	emergencyAlert: false,
+	vnc: false,
 })
 const error = ref(false)
 const subscribed = ref(false)
@@ -371,7 +373,7 @@ function archiveHandler() {
 		emergencyAlertHandler()
 	}
 	if (timeouts.value.archiveLoading[listingPid.value]) clearInterval(timeouts.value.archiveLoading[listingPid.value])
-	timeouts.value.archiveLoading[listingPid.value] = setTimeout(() => (loading.value.archive = false), 30000)
+	timeouts.value.archiveLoading[listingPid.value] = setTimeout(() => (loading.value.archive = false), 90000)
 }
 function emailSignupHandler() {
 	sio.emit('subscribe-daily', store.textFieldEmail, result => {
@@ -445,6 +447,12 @@ onMounted(() => {
 			mostRecentListings.value = payload.map(mostRecentListing => JSON.parse(mostRecentListing)).sort((listingA, listingB) => ((listingA.createdAt || 264330300000) > (listingB.createdAt || 264330300000) ? -1 : 0))
 		})
 	})
+		.on('vncReady', payload => {
+			console.log(payload)
+			const { clientId, url, vncPort } = payload
+			vncUrl.value = url
+			dialogs.value.vnc = true
+		})
 		.on('contactCreated', payload => {
 			store.settings.emergencyContact.contacts.push(payload)
 			created.value.contact = true
@@ -540,22 +548,22 @@ onMounted(() => {
 				clearInterval(intervals.value.checkArchiveLinkActive)
 			}, 300000)
 		})
-        .on('error', errorMessage => {
-            const defaultColor = progressColor.value
-            const defaultWidth = progressWidth.value
-            progressColor.value = 'red'
-            progressWidth.value = 2
-            error.value = true
-            setTimeout(() => {
-                error.value = false
-                loading.value.archive = false
-                setTimeout(() => {
-                    progressColor.value = defaultColor
-                    progressWidth.value = defaultWidth
-                })
-            }, 2500)
-            emit('error', errorMessage)
-        })
+		.on('error', errorMessage => {
+			const defaultColor = progressColor.value
+			const defaultWidth = progressWidth.value
+			progressColor.value = 'red'
+			progressWidth.value = 2
+			error.value = true
+			setTimeout(() => {
+				error.value = false
+				loading.value.archive = false
+				setTimeout(() => {
+					progressColor.value = defaultColor
+					progressWidth.value = defaultWidth
+				})
+			}, 2500)
+			emit('error', errorMessage)
+		})
 	setTimeout(() => {
 		;(isMounted.value = true), 11000
 	})
@@ -576,5 +584,13 @@ onMounted(() => {
 	window.addEventListener('message', handleMessage)
 	// Some time later...
 	//window.removeEventListener('message', handleMessage)
+	watch(
+		() => vncUrl.value,
+		vncUrl => {
+			if (!vncUrl) return
+			dialogs.value.vnc = true
+		},
+		{ immediate: true }
+	)
 })
 </script>

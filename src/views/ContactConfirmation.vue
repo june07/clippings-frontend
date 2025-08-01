@@ -28,7 +28,7 @@ import io from 'socket.io-client'
 import { ref, onMounted, computed, getCurrentInstance } from 'vue'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 import { useAppStore } from '@/store/app'
-import cookie from 'cookie'
+import * as cookie from 'cookie'
 
 import NavHeader from '@/components/NavHeader.vue'
 

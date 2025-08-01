@@ -1,3 +1,8 @@
+import fs from 'node:fs'
+
+const cert = fs.existsSync('./localdev.crt') ? fs.readFileSync('./localdev.crt') : undefined
+const key = fs.existsSync('./localdev.key') ? fs.readFileSync('./localdev.key') : undefined
+
 // Plugins
 import vue from "@vitejs/plugin-vue"
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify"
@@ -47,7 +52,7 @@ export default defineConfig({
                 ],
                 "theme_color": "#ffffff",
                 "background_color": "#ffffff",
-                "start_url": NODE_ENV === 'production' ? "https://clippings.june07.com" : "https://local.clippings.june07.com",
+                "start_url": NODE_ENV === 'production' ? "https://clippings.june07.com" : "https://dev-clippings.keycloak.june07.com",
                 "display": "standalone",
                 "share_target": {
                     "action": "/share",
@@ -77,7 +82,16 @@ export default defineConfig({
     server: {
         host: "0.0.0.0",
         port: 3001,
-        strictPort: true,
+        hmr: {
+            host: 'dev-clippings.keycloak.june07.com',
+        },
+        https: {
+            cert,
+            key
+        },
+        watch: {
+            usePolling: true,
+        }
     },
     test: {
         setupFiles: ["vuetify.config.js", "test/setup.js"],

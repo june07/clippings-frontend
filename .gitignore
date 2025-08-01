@@ -24,3 +24,5 @@ pnpm-debug.log*
 *:Zone.Identifier
 screenshot.png
 dev-dist
+localdev.crt
+localdev.key
