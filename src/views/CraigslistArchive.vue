@@ -167,7 +167,7 @@
 			</v-banner>
 		</v-card>
 		<v-spacer />
-		<vnc-dialog v-model="dialogs.vnc" :vncUrl="vncUrl" :min-width="smAndDown ? '100%' : undefined" @close="dialogs.vnc = false" />
+		<vnc-dialog v-model="dialogs.vnc" :vncUrl="vncUrl" @close="dialogs.vnc = false" />
 		<v-dialog transition="dialog-bottom-transition" width="auto" :min-width="smAndDown ? '100%' : undefined" :max-width="smAndDown ? undefined : 700" v-model="dialogs.subscribed" @update:modelValue="store.confirmed = Date.now()">
 			<v-card rounded="xl" class="pa-4" style="opacity: 0.96">
 				<v-card-title class="font-weight-light text-center">Subscribed to Clippings Chronicles</v-card-title>
@@ -448,11 +448,13 @@ onMounted(() => {
 		})
 	})
 		.on('vncReady', payload => {
-			console.log(payload)
 			const { clientId, url, vncPort } = payload
 			vncUrl.value = url
 			dialogs.value.vnc = true
 		})
+        .on('vncFinished', () => {
+            dialogs.value.vnc = false
+        })
 		.on('contactCreated', payload => {
 			store.settings.emergencyContact.contacts.push(payload)
 			created.value.contact = true

@@ -1,6 +1,6 @@
 <template>
 	<v-dialog no-click-animation :retain-focus="false" v-model="dialog" @update:model-value="$emit('update:modelValue', dialog)" :scrim="connected">
-		<v-sheet width="1280" min-height="720" height="720" class="mx-auto" style="position: relative">
+		<v-sheet width="1920" min-height="1080" height="1080" class="mx-auto" style="position: relative">
             <div style="position: absolute; top: 12px; right: 50px" class="text-caption text-end mr-2 animate__animated" :class="connected ? 'animate__fadeIn' : 'animate__fadeOut'">{{ vncUrl }}</div>
             <div ref="vncContainer" class="vnc-screen"></div>
             <v-sheet color="black" class="font-weight-bold text-center text-white animate__animated pa-4" :class="connected ? 'animate__fadeIn' : 'animate__fadeOut'">Please complete the captcha to finish the archiving process.</v-sheet>
@@ -11,8 +11,8 @@
 <style scoped>
 .vnc-screen {
 	background: black;
-    height: 720px;
-    width: 1280px;
+    height: 1080px;
+    width: 1920px;
 	overflow: auto;
 }
 </style>
@@ -43,8 +43,8 @@ function connect() {
 
 		rfb = new RFB(vncContainer.value, props.vncUrl, {
 			credentials: { username: '', password: '' },
-			scaleViewport: false, // scale the canvas to container size
-			resizeSession: true, // keep remote desktop size fixed (no resize)
+			scaleViewport: true, // scale the canvas to container size
+			resizeSession: false, // keep remote desktop size fixed (no resize)
 			shared: true,
 			viewOnly: false,
 			qualityLevel: 1,
