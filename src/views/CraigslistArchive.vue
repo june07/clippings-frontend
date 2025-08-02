@@ -251,7 +251,7 @@ import EmergencySetupDialog from '@/components/EmergencySetupDialog.vue'
 import EmergencyAlertDialog from '@/components/EmergencyAlertDialog.vue'
 import VncDialog from '@/components/VncDialog.vue'
 
-const vncUrl = ref() //'wss://api.dev.june07.com/v1/vnc/6180')
+const vncUrl = ref()//'wss://api.dev.june07.com/v1/vnc/6180')
 const emit = defineEmits(['error'])
 const { $api } = getCurrentInstance().appContext.config.globalProperties
 const intervals = ref({
