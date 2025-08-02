@@ -35,7 +35,7 @@ const loading = ref(false)
 const dialog = ref(false)
 const title = computed(() => {
     if (props.type === 'daily') {
-        return 'Stay informed with Clippings Chronical, a list of most popular archived ads each day.'
+        return `Stay informed with <span class="font-weight-bold">Clippings Chronicles</span>, a list of most popular archived ads each day.`
     }
 })
 const store = useAppStore()

@@ -1,5 +1,5 @@
 {
-  "name": "craigslist",
+  "name": "clippings-frontend",
   "version": "0.2.0",
   "scripts": {
     "dev": "vite",
@@ -10,8 +10,8 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@elikoga/novnc": "^1.6.1-alpha.1",
     "@giscus/vue": "^3.1.1",
-    "@novnc/novnc": "^1.5.0",
     "animate.css": "^4.1.1",
     "async": "^3.2.6",
     "axios": "^1.11.0",
@@ -22,6 +22,7 @@
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.4.1",
     "socket.io-client": "^4.8.1",
+    "sweetalert2": "^11.22.2",
     "vue": "^3.5.18",
     "vue-flatpickr-component": "^12.0.0",
     "vue-social-sharing": "^4.0.0-alpha4",

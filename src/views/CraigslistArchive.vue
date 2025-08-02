@@ -23,7 +23,7 @@
 			<v-card-subtitle v-if="!loading.archive" class="font-weight-medium text-center">Enter ad link and click save</v-card-subtitle>
 			<v-card-subtitle v-else class="font-weight-light text-center font-caption text-wrap">{{ smAndDown ? shortenAdURL(store.textField) : store.textField }}</v-card-subtitle>
 			<v-card-text class="pa-0 mt-8">
-				<v-text-field :disabled="loading.archive"  validate-on="lazy" density="compact" variant="outlined" rounded="lg" v-model="store.textField" persistent-hint hint="Any Craigslist ad link" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url">
+				<v-text-field :disabled="loading.archive" validate-on="lazy" density="compact" variant="outlined" rounded="lg" v-model="store.textField" persistent-hint hint="Any Craigslist ad link" placeholder="https://sfbay.craigslist.org/sfc/zip/d/ad-to-archive" :rules="rules.url">
 					<template v-slot:details>
 						<v-checkbox density="compact" hide-details class="d-flex justify-end" v-model="alertCheckbox">
 							<template v-slot:prepend>
@@ -170,7 +170,7 @@
 		<vnc-dialog v-model="dialogs.vnc" :vncUrl="vncUrl" @close="dialogs.vnc = false" />
 		<v-dialog transition="dialog-bottom-transition" width="auto" :min-width="smAndDown ? '100%' : undefined" :max-width="smAndDown ? undefined : 700" v-model="dialogs.subscribed" @update:modelValue="store.confirmed = Date.now()">
 			<v-card rounded="xl" class="pa-4" style="opacity: 0.96">
-				<v-card-title class="font-weight-light text-center">Subscribed to Clippings Chronicles</v-card-title>
+				<v-card-title class="font-weight-light text-center">Subscribed to <span class="font-weight-bold">Clippings Chronicles</span></v-card-title>
 				<v-card-subtitle class="font-weight-light text-center">Thank you for confirming!</v-card-subtitle>
 				<v-card-text class="text-body-1"> We're excited to have you on board. Look forward to receiving our latest updates and offers in your inbox soon! </v-card-text>
 			</v-card>
@@ -242,6 +242,7 @@ import io from 'socket.io-client'
 import * as cookie from 'cookie'
 import 'animate.css'
 import humanizeDuration from 'humanize-duration'
+import Swal from 'sweetalert2'
 
 import SocialShare from '@/components/SocialShare.vue'
 import EmailSignup from '@/components/EmailSignup.vue'
@@ -452,9 +453,17 @@ onMounted(() => {
 			vncUrl.value = url
 			dialogs.value.vnc = true
 		})
-        .on('vncFinished', () => {
-            dialogs.value.vnc = false
-        })
+		.on('vncFinished', () => {
+			dialogs.value.vnc = false
+			requestAnimationFrame(() => {
+				Swal.fire({
+					icon: 'success',
+					title: 'Clipped & Archived!',
+					timer: 1500,
+					showConfirmButton: false,
+				})
+			})
+		})
 		.on('contactCreated', payload => {
 			store.settings.emergencyContact.contacts.push(payload)
 			created.value.contact = true

@@ -18,7 +18,7 @@
 </style>
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import RFB from '@novnc/novnc'
+import RFB from '@elikoga/novnc'
 
 const props = defineProps({
 	modelValue: Boolean,
