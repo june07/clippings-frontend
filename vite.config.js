@@ -81,7 +81,7 @@ export default defineConfig({
     },
     server: {
         host: "0.0.0.0",
-        port: 3001,
+        port: 8443,
         hmr: {
             host: 'dev-clippings.keycloak.june07.com',
         },

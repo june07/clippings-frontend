@@ -367,6 +367,7 @@ function emergencySetupDialogHandler() {
 	dialogs.value.emergencySetup = !dialogs.value.emergencySetup
 }
 function archiveHandler() {
+    console.log('listingsPid.value: ', listingPid.value, ' store.textField: ', store.textField)
 	if (!listingPid.value || !/https:\/\/.*\.craigslist\.org\/.+/.test(store.textField)) return
 	loading.value.archive = true
 	sio.emit('archive', store.textField)

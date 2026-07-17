@@ -113,7 +113,12 @@ onMounted(() => {
     location.value = window.location
 })
 
-const pidFromURL = (url) => url && url.match(/\/([^\/]*)\.html/)?.[1]
+const pidFromURL = (url) => {
+    console.log('url: ', url)
+    const pid = url && url.match(/\/([^\/]*)(\.html)?$/)?.[1]
+    console.log('pid: ', pid)
+    return pid
+}
 const shortenAdURL = (url) => url && url.match(/https?:\/\/[^/]*(.*)/)?.[1] ? `...${url.match(/https?:\/\/[^/]*(.*)/)[1]}` : ''
 const getCodeURL = (pid) => pid && `https://github.com/june07/clippings-archive/tree/main/craigslist/${pid}`
 const getWebURL = (pid) => pid && location.value && `${location.value.origin}/archive/cl/${pid}`
