@@ -104,7 +104,9 @@ const sio = io(VITE_API_SERVER + '/', {
     if (listingPid.value) {
         sio.emit('getArchive', listingPid.value, archive => {
             if (archive) {
-                archiveData.value = JSON.parse(archive)
+                archiveData.value = typeof archive === 'string' 
+                    ? JSON.parse(archive) 
+                    : archive;
             }
         })
         sio.emit('readAlerts', {}, alerts => store.alerts.emergency = alerts)
