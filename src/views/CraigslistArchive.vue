@@ -405,7 +405,9 @@ watch(
 	(newValue, oldValue) => {
 		if (!newValue || newValue === oldValue || !newValue.match(/\d{10}/)?.[0]) return
 		sio.emit('getArchive', listingPid.value, archive => {
-			archiveData.value[listingPid.value] = JSON.parse(archive)
+			archiveData.value[listingPid.value] = typeof archive === 'string' 
+                    ? JSON.parse(archive) 
+                    : archive;
 		})
 	}
 )
@@ -440,7 +442,9 @@ onMounted(() => {
 			archiveHandler()
 		} else if (listingPid.value) {
 			sio.emit('getArchive', listingPid.value, archive => {
-				archiveData.value[listingPid.value] = JSON.parse(archive)
+				archiveData.value[listingPid.value] = typeof archive === 'string' 
+                    ? JSON.parse(archive) 
+                    : archive;
 			})
 		}
 		sio.emit('getMostRecentDiscussions', { last: 10 })
